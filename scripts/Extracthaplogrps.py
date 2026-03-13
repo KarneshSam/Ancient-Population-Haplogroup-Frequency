@@ -177,10 +177,23 @@ def main():
     parser.add_argument(
         "-o", "--outdir", required=True,
         help="Directory to save the output frequency tables and haplogroup lists")
+    parser.add_argument(
+        "--yter", 
+        help="Output TSV file of Y haplogroup terminal frequencies")
+    parser.add_argument(
+        "--yisogg", 
+        help="Output TSV file of Y haplogroup ISOGG frequencies")
+    parser.add_argument(
+        "--mt", 
+        help="Output TSV file of mtDNA haplogroup frequencies")
+
     args = parser.parse_args()
     # Mention the input file and output directory
     input_file = args.input
     outdir = args.outdir
+    yter = args.yter if args.yter else os.path.join(outdir, "y_hap_ter_freq.tsv")
+    yisogg = args.yisogg if args.yisogg else os.path.join(outdir, "y_hap_isogg_freq.tsv")
+    mt = args.mt if args.mt else os.path.join(outdir, "mt_hap_freq.tsv")
 
     # ------- WORKFLOW -------
     # 1. Load data
@@ -192,16 +205,13 @@ def main():
     # 4. Create separate dataframes for each haplogroup type and generate frequency tables
     # Y haplogroup terminal
     df_yter = clean_haplogroup(df, "Y_Haplogroup")
-    df_yter_freq = create_frequency_table(df_yter, "Y_Haplogroup",
-                       os.path.join(outdir, "y_hap_ter_freq.tsv"))
+    df_yter_freq = create_frequency_table(df_yter, "Y_Haplogroup", yter)
     # Y haplogroup ISOGG
     df_yisogg = clean_haplogroup(df, "Y_Haplogroup_ISOGG")
-    df_yisogg_freq = create_frequency_table(df_yisogg, "Y_Haplogroup_ISOGG",
-                       os.path.join(outdir, "y_hap_isogg_freq.tsv"))
+    df_yisogg_freq = create_frequency_table(df_yisogg, "Y_Haplogroup_ISOGG", yisogg)
     # mtDNA haplogroup
     df_mt = clean_haplogroup(df, "mtDNA_Haplogroup")
-    df_mt_freq = create_frequency_table(df_mt, "mtDNA_Haplogroup",
-                       os.path.join(outdir, "mt_hap_freq.tsv"), include_sex=True)
+    df_mt_freq = create_frequency_table(df_mt, "mtDNA_Haplogroup", mt, include_sex=True)
     
 ##################################
 # Run the main function when the script is executed
