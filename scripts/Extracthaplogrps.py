@@ -33,20 +33,23 @@ def load_data(input_file):
 # 2. RENAME COLUMNS
 #######################################
 
-# Rename columns to more user-friendly names
-df.rename(columns={
-    'Date mean in BP in years before 1950 CE [OxCal mu for a direct radiocarbon date, and average of range for a contextual date]': 'Age',
-    'Group ID': 'Ancient pop',
-    'Political Entity': 'Country',
-    'Lat.': 'Lat',  
-    'Long.': 'Long',
-    'Molecular Sex': 'Sex',
-    'Y haplogroup (manual curation in terminal mutation format)': 'Y_Haplogroup',
-    'Y haplogroup (manual curation in ISOGG format)': 'Y_Haplogroup_ISOGG',
-    'mtDNA haplogroup if >2x or published': 'mtDNA_Haplogroup'
-}, inplace=True)
+def rename_columns(df):
+    """Rename columns to more concise names for easier handling."""
+    df.rename(columns={
+      'Date mean in BP in years before 1950 CE [OxCal mu for a direct radiocarbon date, and average of range for a contextual date]': 'Age',
+      'Group ID': 'Ancient pop',
+      'Political Entity': 'Country',
+      'Lat.': 'Lat',  
+      'Long.': 'Long',
+      'Molecular Sex': 'Sex',
+      'Y haplogroup (manual curation in terminal mutation format)': 'Y_Haplogroup',
+      'Y haplogroup (manual curation in ISOGG format)': 'Y_Haplogroup_ISOGG',
+      'mtDNA haplogroup if >2x or published': 'mtDNA_Haplogroup'
+      }, inplace=True)
+    
+    return df
 
-print(df.head(2))
+#print(df.head(2))
 
 #######################################
 # 3. CLEAN COORDINATES AND ANCIENT POPULATION SAMPLES
