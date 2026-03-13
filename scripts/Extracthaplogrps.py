@@ -1,3 +1,6 @@
+# Pandas and NumPy for data manipulation
+# argparse for command-line argument parsing 
+# os and sys for file handling and system operations
 import pandas as pd
 import numpy as np
 import argparse
@@ -34,6 +37,7 @@ def load_data(input_file):
 # 2. RENAME COLUMNS
 #######################################
 
+# Rename columns to more concise names for easier handling
 def rename_columns(df):
     """Rename columns to more concise names for easier handling."""
     df.rename(columns={
@@ -50,38 +54,32 @@ def rename_columns(df):
     
     return df
 
-#print(df.head(2))
-
 #######################################
 # 3. CLEAN COORDINATES AND ANCIENT POPULATION SAMPLES
 #######################################
 
+# Define a function to clean the Lat and Long columns by removing entire rows with missing values
 def clean_coordinates(df):
     """Clean the Lat and Long columns by removing rows with missing values and converting to numeric."""
-
     # Remove rows with missing coordinates in Long and Lat
     df = df[df["Lat"].replace("..", np.nan).notna() &
         df["Long"].replace("..", np.nan).notna()]
+    
     # Convert Lat and Long to numeric, coercing errors to NaN
     df["Lat"] = pd.to_numeric(df["Lat"], errors="coerce")
     df["Long"] = pd.to_numeric(df["Long"], errors="coerce")
+   
     # Drop rows where Lat or Long is still NaN after conversion
     df = df.dropna(subset=["Lat", "Long"])
-
-#print(df.head(2))
-#print(df[["Lat", "Long"]].head(2))
 
     # Convert Lat and Long to float, replacing commas with dots
     df["Lat"] = df["Lat"].str.replace(",", ".").astype(float)
     df["Long"] = df["Long"].str.replace(",", ".").astype(float)
 
-#print(df[["Lat", "Long"]].head(2))
-
     # Keep rows which are Ancient pop
     df = df[df["Age"] != 0]
 
     return df
-#len(df)
 
 #######################################
 # 4. FILTER N/A VALUES IN HAPLOGROUP COLUMNS
@@ -115,7 +113,7 @@ def create_frequency_table(df, hap_column, outfile, include_sex=False):
             df.groupby(["Ancient pop", "Sex", "basal"])[hap_column]
               .apply(lambda x: ",".join(x))
               .unstack()
-            ).reset_index()
+              ).reset_index()
         haplists_file = outfile.replace(".tsv", "_haplists_by_sex.tsv")
     # for non sex-specific haplogroup list    
     else:
@@ -123,7 +121,7 @@ def create_frequency_table(df, hap_column, outfile, include_sex=False):
             df.groupby(["Ancient pop", "basal"])[hap_column]
               .apply(lambda x: ",".join(x))
               .unstack()
-            ).reset_index()
+              ).reset_index()
         haplists_file = outfile.replace(".tsv", "_haplists.tsv")
     # Save the haplogroup lists to a separate file
     hap_lists.to_csv(haplists_file, sep="\t", index=False)
@@ -138,7 +136,7 @@ def create_frequency_table(df, hap_column, outfile, include_sex=False):
             "Country": "first",
             "Lat": "mean",
             "Long": "mean"
-        }).reset_index()
+            }).reset_index()
         meta["Age"] = meta["Age"].round().astype(int)
         final = meta.merge(freq, on=["Ancient pop","Sex"], how="inner")
         final = final[~final["Sex"].str.startswith(("c", "U"), na=False)] # Remove rows where Sex starts with "c" or "U" (child or unknown)
@@ -152,7 +150,7 @@ def create_frequency_table(df, hap_column, outfile, include_sex=False):
             "Sex": "first",
             "Lat": "mean",
             "Long": "mean"
-        }).reset_index()
+            }).reset_index()
         meta["Age"] = meta["Age"].round().astype(int)
         final = meta.merge(freq, on="Ancient pop", how="inner")
     
@@ -169,8 +167,10 @@ def create_frequency_table(df, hap_column, outfile, include_sex=False):
 # MAIN EXECUTION
 #######################################
 
+# Define the main function to orchestrate the workflow
 def main():
     parser = argparse.ArgumentParser(description="Extract haplogroup frequencies from AADR annotations file")
+    # Define command-line arguments for input file, output directory, and optional output files for each haplogroup type
     parser.add_argument(
         "-i", "--input", required=True,
         help="Path to the AADR annotations file (tsv format)")
@@ -186,11 +186,12 @@ def main():
     parser.add_argument(
         "--mt", 
         help="Output TSV file of mtDNA haplogroup frequencies")
-
+    # Parse the command-line arguments
     args = parser.parse_args()
     # Mention the input file and output directory
     input_file = args.input
     outdir = args.outdir
+    # Set default output file paths if not provided by the user
     yter = args.yter if args.yter else os.path.join(outdir, "y_hap_ter_freq.tsv")
     yisogg = args.yisogg if args.yisogg else os.path.join(outdir, "y_hap_isogg_freq.tsv")
     mt = args.mt if args.mt else os.path.join(outdir, "mt_hap_freq.tsv")
@@ -205,13 +206,13 @@ def main():
     # 4. Create separate dataframes for each haplogroup type and generate frequency tables
     # Y haplogroup terminal
     df_yter = clean_haplogroup(df, "Y_Haplogroup")
-    df_yter_freq = create_frequency_table(df_yter, "Y_Haplogroup", yter)
+    create_frequency_table(df_yter, "Y_Haplogroup", yter)
     # Y haplogroup ISOGG
     df_yisogg = clean_haplogroup(df, "Y_Haplogroup_ISOGG")
-    df_yisogg_freq = create_frequency_table(df_yisogg, "Y_Haplogroup_ISOGG", yisogg)
+    create_frequency_table(df_yisogg, "Y_Haplogroup_ISOGG", yisogg)
     # mtDNA haplogroup
     df_mt = clean_haplogroup(df, "mtDNA_Haplogroup")
-    df_mt_freq = create_frequency_table(df_mt, "mtDNA_Haplogroup", mt, include_sex=True)
+    create_frequency_table(df_mt, "mtDNA_Haplogroup", mt, include_sex=True)
     
 ##################################
 # Run the main function when the script is executed
@@ -219,38 +220,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
-#######################################
-# 6. Y HAPLOGROUP TERMINAL
-#######################################
-df_yter = clean_haplogroup(df, "Y_Haplogroup")
-len(df_yter)
-print(df_yter.head(2))
-df_yter_freq = create_frequency_table(df_yter, "Y_Haplogroup",
-                       "/home/inf-41-2025/BINP29/Popgenetics/y_hap_ter_freq.tsv")
-len(df_yter_freq)
-print(df_yter_freq.head(2))
-
-#######################################
-# 7. Y HAPLOGROUP ISOGG
-#######################################
-df_yisogg = clean_haplogroup(df, "Y_Haplogroup_ISOGG")
-len(df_yisogg)
-print(df_yisogg.head(2))
-df_yisogg_freq = create_frequency_table(df_yisogg, "Y_Haplogroup_ISOGG",
-                       "/home/inf-41-2025/BINP29/Popgenetics/y_hap_isogg_freq.tsv")
-len(df_yisogg_freq)
-print(df_yisogg_freq.head(2))   
-
-#######################################
-# 8. mtDNA HAPLOGROUP  
-#######################################
-df_mt = clean_haplogroup(df, "mtDNA_Haplogroup")
-len(df_mt)
-print(df_mt.head(2))
-df_mt_freq = create_frequency_table(df_mt, "mtDNA_Haplogroup",
-                       "/home/inf-41-2025/BINP29/Popgenetics/mt_hap_freq.tsv", include_sex=True)
-len(df_mt_freq)
-print(df_mt_freq.head(2))
