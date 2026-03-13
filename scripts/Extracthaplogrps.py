@@ -225,6 +225,11 @@ def create_frequency_table(df, hap_column, outfile, include_sex=False):
               .unstack()
               ).reset_index()
         haplists_file = outfile.replace(".tsv", "_haplists.tsv")
+
+    # Clean Ancient pop names ("_" to " ")
+    if "Ancient pop" in hap_lists.columns:
+        hap_lists["Ancient pop"] = hap_lists["Ancient pop"].astype(str).str.replace("_", " ")
+        
     # Save the haplogroup lists to a separate file
     hap_lists.to_csv(haplists_file, sep="\t", index=False)
 
