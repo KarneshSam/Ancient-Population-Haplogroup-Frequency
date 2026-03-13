@@ -55,27 +55,32 @@ def rename_columns(df):
 # 3. CLEAN COORDINATES AND ANCIENT POPULATION SAMPLES
 #######################################
 
-# Remove rows with missing coordinates in Long and Lat
-df = df[df["Lat"].replace("..", np.nan).notna() &
+def clean_coordinates(df):
+    """Clean the Lat and Long columns by removing rows with missing values and converting to numeric."""
+
+    # Remove rows with missing coordinates in Long and Lat
+    df = df[df["Lat"].replace("..", np.nan).notna() &
         df["Long"].replace("..", np.nan).notna()]
-# Convert Lat and Long to numeric, coercing errors to NaN
-df["Lat"] = pd.to_numeric(df["Lat"], errors="coerce")
-df["Long"] = pd.to_numeric(df["Long"], errors="coerce")
-# Drop rows where Lat or Long is still NaN after conversion
-df = df.dropna(subset=["Lat", "Long"])
+    # Convert Lat and Long to numeric, coercing errors to NaN
+    df["Lat"] = pd.to_numeric(df["Lat"], errors="coerce")
+    df["Long"] = pd.to_numeric(df["Long"], errors="coerce")
+    # Drop rows where Lat or Long is still NaN after conversion
+    df = df.dropna(subset=["Lat", "Long"])
 
-print(df.head(2))
-print(df[["Lat", "Long"]].head(2))
+#print(df.head(2))
+#print(df[["Lat", "Long"]].head(2))
 
-# Convert Lat and Long to float, replacing commas with dots
-df["Lat"] = df["Lat"].str.replace(",", ".").astype(float)
-df["Long"] = df["Long"].str.replace(",", ".").astype(float)
+    # Convert Lat and Long to float, replacing commas with dots
+    df["Lat"] = df["Lat"].str.replace(",", ".").astype(float)
+    df["Long"] = df["Long"].str.replace(",", ".").astype(float)
 
-print(df[["Lat", "Long"]].head(2))
+#print(df[["Lat", "Long"]].head(2))
 
-# Keep rows which are Ancient pop
-df = df[df["Age"] != 0]
-len(df)
+    # Keep rows which are Ancient pop
+    df = df[df["Age"] != 0]
+
+    return df
+#len(df)
 
 #######################################
 # 4. FILTER N/A VALUES IN HAPLOGROUP COLUMNS
