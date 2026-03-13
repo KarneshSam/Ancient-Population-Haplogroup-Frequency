@@ -113,6 +113,11 @@ def create_frequency_table(df, hap_column, outfile, include_sex=False):
         }).reset_index()
         meta["Age"] = meta["Age"].round().astype(int)
         final = meta.merge(freq, on="Ancient pop", how="inner")
+    
+    # Clean Ancient pop names ("_" to " ")
+    if "Ancient pop" in final.columns:
+        final["Ancient pop"] = final["Ancient pop"].astype(str).str.replace("_", " ")
+
     final.to_csv(outfile, sep="\t", index=False)
     return final
 
