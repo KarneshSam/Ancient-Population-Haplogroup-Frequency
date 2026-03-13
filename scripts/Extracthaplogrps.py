@@ -195,6 +195,12 @@ def main():
     yter = args.yter if args.yter else os.path.join(outdir, "y_hap_ter_freq.tsv")
     yisogg = args.yisogg if args.yisogg else os.path.join(outdir, "y_hap_isogg_freq.tsv")
     mt = args.mt if args.mt else os.path.join(outdir, "mt_hap_freq.tsv")
+    
+    # Check if the input file and output directory exist
+    if not os.path.exists(input_file):
+        sys.exit(f"Error: Input file '{input_file}' does not exist.")
+    if not os.path.exists(outdir):  
+        sys.exit(f"Error: Output directory '{outdir}' does not exist.")
 
     # ------- WORKFLOW -------
     # 1. Load data
