@@ -79,3 +79,47 @@ def clean_haplogroup(df, column):
     temp = df[df[column].replace("..", np.nan).notna()]
     temp = temp[~temp[column].str.startswith(("n/a", "na", "NO", "not published"), na=False)]
     return temp
+
+#######################################
+# 5. CREATE SEPARATE DATAFRAMES FOR EACH HAPLOGROUP TYPE
+#######################################
+
+def create_frequency_table(df, hap_column, outfile, include_sex=False):
+    """Create frequency tables and basal-level haplists."""
+    df = df.copy()
+    df["basal"] = df[hap_column].str.extract(r'^([A-Z])')
+
+    # Frequency table
+    if include_sex:
+        freq = df.groupby(["Ancient pop","Sex","basal"]).size().unstack(fill_value=0).reset_index()
+        freq["total"] = freq.select_dtypes(include="number").sum(axis=1)
+        meta = df.groupby(["Ancient pop","Sex"]).agg({
+            "Age": "mean",
+            "Country": "first",
+            "Lat": "mean",
+            "Long": "mean"
+        }).reset_index()
+        meta["Age"] = meta["Age"].round().astype(int)
+        final = meta.merge(freq, on=["Ancient pop","Sex"], how="inner")
+        final = final[~final["Sex"].str.startswith(("c", "U"), na=False)]
+    else:
+        freq = df.groupby(["Ancient pop","basal"]).size().unstack(fill_value=0).reset_index()
+        freq["total"] = freq.select_dtypes(include="number").sum(axis=1)
+        meta = df.groupby("Ancient pop").agg({
+            "Age": "mean",
+            "Country": "first",
+            "Lat": "mean",
+            "Long": "mean"
+        }).reset_index()
+        meta["Age"] = meta["Age"].round().astype(int)
+        final = meta.merge(freq, on="Ancient pop", how="inner")
+    final.to_csv(outfile, sep="\t", index=False)
+    return final
+
+df_yter = clean_haplogroup(df, "Y_Haplogroup")
+len(df_yter)
+print(df_yter.head(2))
+df_yter_freq = create_frequency_table(df_yter, "Y_Haplogroup",
+                       "/home/inf-41-2025/BINP29/Popgenetics/y_hap_ter_freq.tsv")
+len(df_yter_freq)
+print(df_yter_freq.head(2))
