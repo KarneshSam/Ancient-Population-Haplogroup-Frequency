@@ -91,9 +91,9 @@ def clean_coordinates(df):
 # or values that start with "n/a", "na", "NO", or "not published"
 def clean_haplogroup(df, column):
     """Remove missing or invalid haplogroups"""
-    temp = df[df[column].replace("..", np.nan).notna()]
-    temp = temp[~temp[column].str.startswith(("n/a", "na", "NO", "not published"), na=False)]
-    return temp
+    df = df[df[column].replace("..", np.nan).notna()]
+    df = df[~df[column].str.startswith(("n/a", "na", "NO", "not published"), na=False)]
+    return df
 
 #######################################
 # 5. CREATE SEPARATE DATAFRAMES FOR EACH HAPLOGROUP TYPE
@@ -114,7 +114,7 @@ def create_frequency_table(df, hap_column, outfile, include_sex=False):
             df.groupby(["Ancient pop", "Sex", "basal"])[hap_column]
               .apply(lambda x: ",".join(x))
               .unstack()
-        ).reset_index()
+            ).reset_index()
         haplists_file = outfile.replace(".tsv", "_haplists_by_sex.tsv")
     # for non sex-specific haplogroup list    
     else:
@@ -122,7 +122,7 @@ def create_frequency_table(df, hap_column, outfile, include_sex=False):
             df.groupby(["Ancient pop", "basal"])[hap_column]
               .apply(lambda x: ",".join(x))
               .unstack()
-        ).reset_index()
+            ).reset_index()
         haplists_file = outfile.replace(".tsv", "_haplists.tsv")
     # Save the haplogroup lists to a separate file
     hap_lists.to_csv(haplists_file, sep="\t", index=False)
@@ -160,6 +160,8 @@ def create_frequency_table(df, hap_column, outfile, include_sex=False):
         final["Ancient pop"] = final["Ancient pop"].astype(str).str.replace("_", " ")
 
     final.to_csv(outfile, sep="\t", index=False)
+    print(f"Saved frequency table: {outfile}")
+    print(f"Saved haplist table: {haplists_file}")
     return final
 
 #######################################
