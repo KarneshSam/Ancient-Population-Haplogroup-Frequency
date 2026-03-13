@@ -116,6 +116,7 @@ def create_frequency_table(df, hap_column, outfile, include_sex=False):
               .apply(lambda x: ",".join(x))
               .unstack()
               ).reset_index()
+        hap_lists = hap_lists[~hap_lists["Sex"].str.startswith(("c", "U"), na=False)] # Remove rows where Sex starts with "c" or "U" (child or unknown)
         haplists_file = outfile.replace(".tsv", "_haplists.tsv")
     # for non sex-specific haplogroup list    
     else:
