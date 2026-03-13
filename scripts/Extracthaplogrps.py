@@ -91,6 +91,27 @@ def create_frequency_table(df, hap_column, outfile, include_sex=False):
     df = df.copy()
     df["basal"] = df[hap_column].str.extract(r'^([A-Z])')
 
+    # Basal haplists
+    # for sex-specific haplogroup list
+    if include_sex:
+        # Extract the haplogroups for each Ancient pop with repect to the basal haplogroup
+        hap_lists = (
+            df.groupby(["Ancient pop", "Sex", "basal"])[hap_column]
+              .apply(lambda x: ",".join(x))
+              .unstack()
+        ).reset_index()
+        haplists_file = outfile.replace(".tsv", "_haplists_by_sex.tsv")
+    # for non sex-specific haplogroup list    
+    else:
+        hap_lists = (
+            df.groupby(["Ancient pop", "basal"])[hap_column]
+              .apply(lambda x: ",".join(x))
+              .unstack()
+        ).reset_index()
+        haplists_file = outfile.replace(".tsv", "_haplists.tsv")
+    # Save the haplogroup lists to a separate file
+    hap_lists.to_csv(haplists_file, sep="\t", index=False)
+
     # Frequency table
     if include_sex:
         freq = df.groupby(["Ancient pop","Sex","basal"]).size().unstack(fill_value=0).reset_index()
@@ -112,6 +133,7 @@ def create_frequency_table(df, hap_column, outfile, include_sex=False):
         meta = df.groupby("Ancient pop").agg({
             "Age": "mean",
             "Country": "first",
+            "Sex": "first",
             "Lat": "mean",
             "Long": "mean"
         }).reset_index()
