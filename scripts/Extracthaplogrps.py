@@ -40,3 +40,27 @@ df.rename(columns={
 }, inplace=True)
 
 print(df.head(2))
+
+#######################################
+# 3. CLEAN COORDINATES AND ANCIENT POPULATION SAMPLES
+#######################################
+
+# Remove rows with missing coordinates in Long and Lat
+df = df[df["Lat"].replace("..", np.nan).notna() &
+        df["Long"].replace("..", np.nan).notna()]
+# Convert Lat and Long to numeric, coercing errors to NaN
+df["Lat"] = pd.to_numeric(df["Lat"], errors="coerce")
+df["Long"] = pd.to_numeric(df["Long"], errors="coerce")
+# Drop rows where Lat or Long is still NaN after conversion
+df = df.dropna(subset=["Lat", "Long"])
+
+print(df.head(2))
+print(df[["Lat", "Long"]].head(2))
+
+# Convert Lat and Long to float, replacing commas with dots
+df["Lat"] = df["Lat"].str.replace(",", ".").astype(float)
+df["Long"] = df["Long"].str.replace(",", ".").astype(float)
+
+print(df[["Lat", "Long"]].head(2))
+
+
