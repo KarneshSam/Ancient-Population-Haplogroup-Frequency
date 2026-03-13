@@ -63,4 +63,6 @@ df["Long"] = df["Long"].str.replace(",", ".").astype(float)
 
 print(df[["Lat", "Long"]].head(2))
 
-
+# Keep rows which are Ancient pop
+df = df[df["Age"] != 0]
+len(df)
