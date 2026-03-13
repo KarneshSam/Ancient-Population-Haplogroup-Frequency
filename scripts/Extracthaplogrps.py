@@ -1,3 +1,102 @@
+#!/usr/bin/env python3
+
+"""
+Extracthaplogrps.py (script's name)
+
+Description:
+      This program processes the AADR annotations dataset and extracts basal 
+      haplogroup frequencies for ancient populations. The script reads the 
+      annotations file, filters relevant columns, cleans coordinate and haplogroup 
+      information, and produces frequency tables for Y-chromosome and mitochondrial 
+      haplogroups.
+      
+      The main goal is to summarize haplogroup distributions across ancient
+      populations. The program generates frequency tables for:
+            1. Y haplogroups in terminal mutation format
+            2. Y haplogroups in ISOGG format
+            3. mtDNA haplogroups (calculated separately by sex)
+
+      Additionally, the script produces haplogroup list files (haplists) that
+      store the individual haplogroups belonging to each basal haplogroup group
+      for each ancient population. These lists allow inspection of the detailed
+      haplogroup composition within the summarized frequency tables.
+
+      The script is designed to handle missing values, malformed entries, and
+      coordinate inconsistencies commonly found in large annotation datasets.
+      It also ensures robustness through error handling for missing files,
+      invalid inputs, and file overwriting.
+
+      If the user specifies output filenames, those will be used. Otherwise,
+      the program automatically generates default filenames inside the output
+      directory. The program also supports forced overwriting of existing files.
+
+List of Functions:
+      1. load_data – Reads the AADR annotations file and extracts only the
+                     relevant columns needed for analysis.
+
+      2. rename_columns – Renames the original dataset column names to simpler,
+                          standardized names used throughout the script.
+
+      3. clean_coordinates – Cleans latitude and longitude values, removes rows
+                             with missing coordinates, converts coordinates to
+                             numeric values, and filters for ancient samples.
+
+      4. clean_haplogroup – Filters invalid or missing haplogroup values from
+                            the specified haplogroup column.
+
+      5. create_frequency_table – Generates haplogroup frequency tables based
+                                  on basal haplogroup categories and produces
+                                  haplogroup list (haplist) files.
+
+      6. main – Controls the overall workflow including argument parsing,
+                 file validation, data processing, and result generation.
+
+List of non-standard modules:
+      1. pandas – Used for data manipulation and dataframe operations.
+      2. numpy – Used for handling missing values and numeric operations.
+
+Procedure:
+      1. The program reads the AADR annotations file using pandas.
+      2. The selected columns are renamed to simplified column names.
+      3. Geographic coordinates are cleaned and rows with missing values
+         are removed and kept only ancient population samples.
+      4. Haplogroup columns are filtered to remove invalid or missing entries.
+      5. Separate dataframes are created for:
+            • Y haplogroup (terminal mutation format)
+            • Y haplogroup (ISOGG format)
+            • mtDNA haplogroup
+      6. Basal haplogroups (single-letter classification) are extracted.
+      7. Frequency tables are computed for each ancient population.
+      8. Haplogroup lists are generated to retain detailed haplogroup
+         information.
+      9. Results are written as tab-separated (.tsv) files.
+
+Input:
+      1. AADR annotations file (TSV format) containing metadata for ancient
+         individuals including haplogroup assignments and geographic data.
+
+Output:
+      1. Y haplogroup terminal frequency table (.tsv)
+      2. Y haplogroup ISOGG frequency table (.tsv)
+      3. mtDNA haplogroup frequency table by sex (.tsv)
+      4. Haplogroup list files corresponding to each frequency table.
+
+Usage: python Extracthaplogrps.py -i input_file -o output_dir
+
+Get Help: python Extracthaplogrps.py -h
+
+    Options:
+       --yter OUTPUT_FILE: Specify output file for Y haplogroup terminal frequencies.
+       --yisogg OUTPUT_FILE: Specify output file for Y haplogroup ISOGG frequencies.
+       --mt OUTPUT_FILE: Specify output file for mtDNA haplogroup frequencies.
+       -f, --force: Overwrite output files if they already exist.
+
+Version: 1.00
+Date: 2026-03-13
+Name: Karnesh Sampath
+
+"""
+
 # Pandas and NumPy for data manipulation
 # argparse for command-line argument parsing 
 # os and sys for file handling and system operations
