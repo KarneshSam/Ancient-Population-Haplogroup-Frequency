@@ -84,6 +84,8 @@ def clean_haplogroup(df, column):
 # 5. CREATE SEPARATE DATAFRAMES FOR EACH HAPLOGROUP TYPE
 #######################################
 
+# Create separate dataframes for each haplogroup type
+# This creates a basal (single letter) haplogroup column for each type, which will be used for frequency tables
 def create_frequency_table(df, hap_column, outfile, include_sex=False):
     """Create frequency tables and basal-level haplists."""
     df = df.copy()
@@ -92,7 +94,8 @@ def create_frequency_table(df, hap_column, outfile, include_sex=False):
     # Frequency table
     if include_sex:
         freq = df.groupby(["Ancient pop","Sex","basal"]).size().unstack(fill_value=0).reset_index()
-        freq["total"] = freq.select_dtypes(include="number").sum(axis=1)
+        freq["total"] = freq.select_dtypes(include="number").sum(axis=1)      # total count for each Ancient pop; includes only the numeric columns (the haplogroups)
+        # Metadata table with mean age, first country, mean lat and long for each Ancient pop
         meta = df.groupby(["Ancient pop","Sex"]).agg({
             "Age": "mean",
             "Country": "first",
@@ -101,10 +104,11 @@ def create_frequency_table(df, hap_column, outfile, include_sex=False):
         }).reset_index()
         meta["Age"] = meta["Age"].round().astype(int)
         final = meta.merge(freq, on=["Ancient pop","Sex"], how="inner")
-        final = final[~final["Sex"].str.startswith(("c", "U"), na=False)]
+        final = final[~final["Sex"].str.startswith(("c", "U"), na=False)] # Remove rows where Sex starts with "c" or "U" (child or unknown)
     else:
         freq = df.groupby(["Ancient pop","basal"]).size().unstack(fill_value=0).reset_index()
         freq["total"] = freq.select_dtypes(include="number").sum(axis=1)
+        # Metadata table with mean age, first country, mean lat and long for each Ancient pop
         meta = df.groupby("Ancient pop").agg({
             "Age": "mean",
             "Country": "first",
@@ -121,6 +125,9 @@ def create_frequency_table(df, hap_column, outfile, include_sex=False):
     final.to_csv(outfile, sep="\t", index=False)
     return final
 
+#######################################
+# 6. Y HAPLOGROUP TERMINAL
+#######################################
 df_yter = clean_haplogroup(df, "Y_Haplogroup")
 len(df_yter)
 print(df_yter.head(2))
