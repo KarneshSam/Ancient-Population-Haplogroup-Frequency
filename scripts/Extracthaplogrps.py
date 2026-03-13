@@ -135,3 +135,14 @@ df_yter_freq = create_frequency_table(df_yter, "Y_Haplogroup",
                        "/home/inf-41-2025/BINP29/Popgenetics/y_hap_ter_freq.tsv")
 len(df_yter_freq)
 print(df_yter_freq.head(2))
+
+#######################################
+# 7. Y HAPLOGROUP ISOGG
+#######################################
+df_yisogg = clean_haplogroup(df, "Y_Haplogroup_ISOGG")
+len(df_yisogg)
+print(df_yisogg.head(2))
+df_yisogg_freq = create_frequency_table(df_yisogg, "Y_Haplogroup_ISOGG",
+                       "/home/inf-41-2025/BINP29/Popgenetics/y_hap_isogg_freq.tsv")
+len(df_yisogg_freq)
+print(df_yisogg_freq.head(2))   
