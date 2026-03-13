@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import argparse
 import os
 import sys
 
@@ -163,6 +164,53 @@ def create_frequency_table(df, hap_column, outfile, include_sex=False):
     print(f"Saved frequency table: {outfile}")
     print(f"Saved haplist table: {haplists_file}")
     return final
+
+#######################################
+# MAIN EXECUTION
+#######################################
+
+def main():
+    parser = argparse.ArgumentParser(description="Extract haplogroup frequencies from AADR annotations file")
+    parser.add_argument(
+        "-i", "--input", required=True,
+        help="Path to the AADR annotations file (tsv format)")
+    parser.add_argument(
+        "-o", "--outdir", required=True,
+        help="Directory to save the output frequency tables and haplogroup lists")
+    args = parser.parse_args()
+    # Mention the input file and output directory
+    input_file = args.input
+    outdir = args.outdir
+
+    # ------- WORKFLOW -------
+    # 1. Load data
+    df = load_data(input_file)
+    # 2. Rename columns
+    df = rename_columns(df)
+    # 3. Clean coordinates and filter for Ancient pop samples
+    df = clean_coordinates(df)
+    # 4. Create separate dataframes for each haplogroup type and generate frequency tables
+    # Y haplogroup terminal
+    df_yter = clean_haplogroup(df, "Y_Haplogroup")
+    df_yter_freq = create_frequency_table(df_yter, "Y_Haplogroup",
+                       os.path.join(outdir, "y_hap_ter_freq.tsv"))
+    # Y haplogroup ISOGG
+    df_yisogg = clean_haplogroup(df, "Y_Haplogroup_ISOGG")
+    df_yisogg_freq = create_frequency_table(df_yisogg, "Y_Haplogroup_ISOGG",
+                       os.path.join(outdir, "y_hap_isogg_freq.tsv"))
+    # mtDNA haplogroup
+    df_mt = clean_haplogroup(df, "mtDNA_Haplogroup")
+    df_mt_freq = create_frequency_table(df_mt, "mtDNA_Haplogroup",
+                       os.path.join(outdir, "mt_hap_freq.tsv"), include_sex=True)
+    
+##################################
+# Run the main function when the script is executed
+##################################
+
+if __name__ == "__main__":
+    main()
+
+
 
 #######################################
 # 6. Y HAPLOGROUP TERMINAL
