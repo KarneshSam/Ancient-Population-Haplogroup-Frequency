@@ -146,3 +146,14 @@ df_yisogg_freq = create_frequency_table(df_yisogg, "Y_Haplogroup_ISOGG",
                        "/home/inf-41-2025/BINP29/Popgenetics/y_hap_isogg_freq.tsv")
 len(df_yisogg_freq)
 print(df_yisogg_freq.head(2))   
+
+#######################################
+# 8. mtDNA HAPLOGROUP  
+#######################################
+df_mt = clean_haplogroup(df, "mtDNA_Haplogroup")
+len(df_mt)
+print(df_mt.head(2))
+df_mt_freq = create_frequency_table(df_mt, "mtDNA_Haplogroup",
+                       "/home/inf-41-2025/BINP29/Popgenetics/mt_hap_freq.tsv", include_sex=True)
+len(df_mt_freq)
+print(df_mt_freq.head(2))
