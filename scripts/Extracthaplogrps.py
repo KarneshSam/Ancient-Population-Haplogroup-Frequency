@@ -66,3 +66,16 @@ print(df[["Lat", "Long"]].head(2))
 # Keep rows which are Ancient pop
 df = df[df["Age"] != 0]
 len(df)
+
+#######################################
+# 4. FILTER N/A VALUES IN HAPLOGROUP COLUMNS
+#######################################
+
+# Define a function to clean haplogroup columns
+# This function removes rows where the specified column has missing values (represented as "..") 
+# or values that start with "n/a", "na", "NO", or "not published"
+def clean_haplogroup(df, column):
+    """Remove missing or invalid haplogroups"""
+    temp = df[df[column].replace("..", np.nan).notna()]
+    temp = temp[~temp[column].str.startswith(("n/a", "na", "NO", "not published"), na=False)]
+    return temp
