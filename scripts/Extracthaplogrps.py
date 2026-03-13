@@ -186,6 +186,10 @@ def main():
     parser.add_argument(
         "--mt", 
         help="Output TSV file of mtDNA haplogroup frequencies")
+    # Add the --force argument
+    parser.add_argument(
+        "-f", "--force", action="store_true",
+        help="Overwrite output files if they already exist")
     # Parse the command-line arguments
     args = parser.parse_args()
     # Mention the input file and output directory
@@ -201,6 +205,11 @@ def main():
         sys.exit(f"Error: Input file '{input_file}' does not exist.")
     if not os.path.exists(outdir):  
         sys.exit(f"Error: Output directory '{outdir}' does not exist.")
+    
+    # Check if files exist and force overwrite is not set
+    for f in [yter, yisogg, mt]:
+       if os.path.exists(f) and not args.force:
+        sys.exit(f"Error: Output file '{f}' already exists. Use --force to overwrite.")
 
     # ------- WORKFLOW -------
     # 1. Load data
