@@ -61,20 +61,21 @@ def rename_columns(df):
 # Define a function to clean the Lat and Long columns by removing entire rows with missing values
 def clean_coordinates(df):
     """Clean the Lat and Long columns by removing rows with missing values and converting to numeric."""
+    df = df.copy()
     # Remove rows with missing coordinates in Long and Lat
     df = df[df["Lat"].replace("..", np.nan).notna() &
         df["Long"].replace("..", np.nan).notna()]
     
+    # Convert Lat and Long to float, replacing commas with dots
+    df["Lat"] = df["Lat"].astype(str).str.replace(",", ".")
+    df["Long"] = df["Long"].astype(str).str.replace(",", ".")
+
     # Convert Lat and Long to numeric, coercing errors to NaN
     df["Lat"] = pd.to_numeric(df["Lat"], errors="coerce")
     df["Long"] = pd.to_numeric(df["Long"], errors="coerce")
    
     # Drop rows where Lat or Long is still NaN after conversion
     df = df.dropna(subset=["Lat", "Long"])
-
-    # Convert Lat and Long to float, replacing commas with dots
-    df["Lat"] = df["Lat"].str.replace(",", ".").astype(float)
-    df["Long"] = df["Long"].str.replace(",", ".").astype(float)
 
     # Keep rows which are Ancient pop
     df = df[df["Age"] != 0]
@@ -90,6 +91,7 @@ def clean_coordinates(df):
 # or values that start with "n/a", "na", "NO", or "not published"
 def clean_haplogroup(df, column):
     """Remove missing or invalid haplogroups"""
+    df = df.copy()
     df = df[df[column].replace("..", np.nan).notna()]
     df = df[~df[column].str.startswith(("n/a", "na", "NO", "not published"), na=False)]
     return df
@@ -114,7 +116,7 @@ def create_frequency_table(df, hap_column, outfile, include_sex=False):
               .apply(lambda x: ",".join(x))
               .unstack()
               ).reset_index()
-        haplists_file = outfile.replace(".tsv", "_haplists_by_sex.tsv")
+        haplists_file = outfile.replace(".tsv", "_haplists.tsv")
     # for non sex-specific haplogroup list    
     else:
         hap_lists = (
