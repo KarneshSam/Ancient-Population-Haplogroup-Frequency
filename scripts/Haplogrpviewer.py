@@ -131,4 +131,17 @@ if clicked_pop:
     
     # select row from subhap df
     sub_row = df_sub[(df_sub["Ancient pop"] == clicked_pop) & (df_sub["Sex"] == clicked_sex)].iloc[0]
-    
+    # create a table
+    table_data = []
+    sunburst_data = {"Basal": [], "Sub": [], "Count": []}
+
+    for basal in hap.index:
+            sub_text = sub_row.get(basal, "")
+            if pd.isna(sub_text) or str(sub_text).strip() == "":
+                continue
+            sub_list = [s.strip() for s in str(sub_text).split(",")]
+            table_data.append({"Basal Haplogroup": basal, "Subhaplogroups": ", ".join(sub_list)})
+
+    # display table
+    if table_data:
+            st.table(pd.DataFrame(table_data))
