@@ -142,6 +142,15 @@ if clicked_pop:
             sub_list = [s.strip() for s in str(sub_text).split(",")]
             table_data.append({"Basal Haplogroup": basal, "Subhaplogroups": ", ".join(sub_list)})
 
+            # sunburst values
+            count = hap[basal]
+            val = count / len(sub_list)
+            for s in sub_list:
+                sunburst_data["Basal"].append(basal)
+                sunburst_data["Sub"].append(s)
+                sunburst_data["Count"].append(val)
+
     # display table
     if table_data:
             st.table(pd.DataFrame(table_data))
+    
