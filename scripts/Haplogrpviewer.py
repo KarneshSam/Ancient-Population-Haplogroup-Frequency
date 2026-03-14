@@ -109,7 +109,12 @@ with col2:
     
     if not hap.empty:
             fig = px.pie(values=hap, title=clicked_key, names=hap.index)
-            
+            fig.update_layout(width=350, height=350,
+                legend=dict(title=dict(text="Basal Haplogroups", font=dict(size=12, color="black")),
+                    font=dict(size=10, color="black"),orientation="v",
+                    yanchor="middle", y=0.5, xanchor="left", x=1.05),
+                title_font=dict(size=12, color="black", family="Arial Black"),
+                paper_bgcolor="white", plot_bgcolor="white")
             st.plotly_chart(fig)
     else:
         st.info("Click a marker on the map to see the pie chart.")
