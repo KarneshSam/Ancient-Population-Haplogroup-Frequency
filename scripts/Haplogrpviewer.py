@@ -88,3 +88,21 @@ with col1:
                      ).add_to(marker_cluster)
         
     map_data = st_folium(m, width=800, height=600)
+
+# pie chart
+with col2:
+    st.subheader("Basal Haplogroup Distribution")
+    clicked_pop = None
+    clicked_sex = None
+    
+    if map_data and map_data.get("last_object_clicked"):
+        clicked_key = map_data["last_object_clicked"]
+        clicked_pop, clicked_sex = clicked_key.split("|")
+    
+    if clicked_pop:
+        # select row from main df
+        row = df[(df["Ancient pop"] == clicked_pop) & (df["Sex"] == clicked_sex)].iloc[0]
+        # get haplogroup frequencies for this population
+        hap_cols = [c for c in df.columns if c not in ["Ancient pop","Country","Age","Lat","Long","Sex","total"]]
+        hap = row[hap_cols]
+        hap = hap[hap > 0]  # remove zero haplogroups
