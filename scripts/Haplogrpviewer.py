@@ -77,3 +77,14 @@ with col1:
         attr="©OpenStreetMap, ©CartoDB", control=False).add_to(m)
     
     marker_cluster = MarkerCluster().add_to(m)
+    for idx, r in filtered.iterrows():
+        # unique key combining population and sex
+        marker_key = f"{r['Ancient pop']}|{r['Sex']}"
+        tooltip_text = f"{r['Ancient pop']} | Sex: {r['Sex']} | Total: {r['total']}"
+        folium.Marker(location=[r["Lat"], r["Long"]],
+                      popup=marker_key,
+                      tooltip=tooltip_text,
+                      icon=folium.Icon(color="blue", icon="info-sign")
+                     ).add_to(marker_cluster)
+        
+    map_data = st_folium(m, width=800, height=600)
