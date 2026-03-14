@@ -32,3 +32,10 @@ def load_data():
     }
 
 datasets = load_data()
+
+# Dataset selection sidebar
+st.sidebar.header("Dataset Selection")
+dataset_name = st.sidebar.selectbox("Select Dataset", list(datasets.keys()))
+df = datasets[dataset_name]["freq"]
+df_sub = datasets[dataset_name]["sub"]
+
