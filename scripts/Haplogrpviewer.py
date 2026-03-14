@@ -4,14 +4,36 @@ import folium
 from folium.plugins import MarkerCluster
 import plotly.express as px
 from streamlit_folium import st_folium
+import argparse
 
-# file paths
-y_term_path     = "/home/inf-41-2025/BINP29/Popgenetics/y_hap_ter_freq.tsv"
-y_iso_path      = "/home/inf-41-2025/BINP29/Popgenetics/y_hap_isogg_freq.tsv"
-mt_path         = "/home/inf-41-2025/BINP29/Popgenetics/mt_hap_freq.tsv"
-y_term_sub_path = "/home/inf-41-2025/BINP29/Popgenetics/y_hap_ter_freq_haplists.tsv"
-y_iso_sub_path  = "/home/inf-41-2025/BINP29/Popgenetics/y_hap_isogg_freq_haplists.tsv"
-mt_sub_path     = "/home/inf-41-2025/BINP29/Popgenetics/mt_hap_freq_haplists.tsv"
+def parse_arguments():
+
+    parser = argparse.ArgumentParser(description="Ancient Haplogroup Viewer")
+    parser.add_argument("--y_term", required=True, 
+                        help="Y haplogroup terminal mutation frequency")
+    parser.add_argument("--y_iso", required=True,
+                        help="Y haplogroup ISOGG frequency")
+    parser.add_argument("--mt", required=True,
+                        help="mtDNA haplogroup frequency")
+    parser.add_argument("--y_term_sub", required=True,
+                        help="Y terminal mutation subhaplogroup list")
+    parser.add_argument("--y_iso_sub", required=True,
+                        help="Y ISOGG subhaplogroup list")
+    parser.add_argument("--mt_sub", required=True,
+                        help="mtDNA subhaplogroup list")
+
+    args = parser.parse_args()
+    return args
+
+args = parse_arguments()
+
+Y_TERM_PATH = args.y_term
+Y_ISO_PATH  = args.y_iso
+MT_PATH     = args.mt
+
+Y_TERM_SUB  = args.y_term_sub
+Y_ISO_SUB   = args.y_iso_sub
+MT_SUB      = args.mt_sub
 
 # Page config
 st.set_page_config(layout="wide")
@@ -22,18 +44,15 @@ st.title("Ancient Population Haplogroup Explorer")
 def load_data():
     return {
         "Y haplogroup (terminal mutation)": {
-            "freq": pd.read_csv(y_term_path, sep="\t"),
-            "sub":  pd.read_csv(y_term_sub_path, sep="\t"),
-        },
+            "freq": pd.read_csv(Y_TERM_PATH, sep="\t"),
+            "sub":  pd.read_csv(Y_TERM_SUB, sep="\t")},
         "Y haplogroup (ISOGG format)": {
-            "freq": pd.read_csv(y_iso_path, sep="\t"),
-            "sub":  pd.read_csv(y_iso_sub_path, sep="\t"),
-        },
+            "freq": pd.read_csv(Y_ISO_PATH, sep="\t"),
+            "sub":  pd.read_csv(Y_ISO_SUB, sep="\t")},
         "mtDNA haplogroup": {
-            "freq": pd.read_csv(mt_path, sep="\t"),
-            "sub":  pd.read_csv(mt_sub_path, sep="\t"),
-        },
-    }
+            "freq": pd.read_csv(MT_PATH, sep="\t"),
+            "sub":  pd.read_csv(MT_SUB, sep="\t")},
+        }
 
 datasets = load_data()
 
