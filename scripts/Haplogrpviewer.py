@@ -56,18 +56,6 @@ def load_data():
 
 datasets = load_data()
 
-# Dataset selection sidebar
-st.sidebar.header("Dataset Selection")
-dataset_name = st.sidebar.selectbox("Select Dataset", list(datasets.keys()))
-df = datasets[dataset_name]["freq"]
-df_sub = datasets[dataset_name]["sub"]
-
-# Filters sidebar
-st.sidebar.header("Filters")
-age_range = st.sidebar.slider("Age Range", int(df.Age.min()), int(df.Age.max()), (int(df.Age.min()), int(df.Age.max())))
-country_filter = st.sidebar.multiselect("Country", df.Country.unique(), default=df.Country.unique())
-sex_filter = st.sidebar.multiselect("Sex", df.Sex.unique(), default=df.Sex.unique())
-
 # Apply filters
 # @st.cache_data store in memory
 # create a copy of the filtered dataframe to avoid SettingWithCopyWarning
@@ -89,6 +77,7 @@ def build_base_map(df_subset, center_lat, center_long, zoom):
     ).add_to(m)
 
     mc = MarkerCluster(options={"disableClusteringAtZoom": 10}).add_to(m)
+    
     for _, r in df_subset.iterrows():
         marker_key = f"{r['Ancient pop']}|{r['Sex']}"
         folium.Marker(
@@ -100,6 +89,18 @@ def build_base_map(df_subset, center_lat, center_long, zoom):
 
     return m
 
+# Dataset selection sidebar
+st.sidebar.header("Dataset Selection")
+dataset_name = st.sidebar.selectbox("Select Dataset", list(datasets.keys()))
+df = datasets[dataset_name]["freq"]
+df_sub = datasets[dataset_name]["sub"]
+
+# Filters sidebar
+st.sidebar.header("Filters")
+age_range = st.sidebar.slider("Age Range", int(df.Age.min()), int(df.Age.max()), (int(df.Age.min()), int(df.Age.max())))
+country_filter = st.sidebar.multiselect("Country", df.Country.unique(), default=df.Country.unique())
+sex_filter = st.sidebar.multiselect("Sex", df.Sex.unique(), default=df.Sex.unique())
+
 filtered = filter_data(
     df,
     age_range[0], age_range[1],
@@ -109,7 +110,14 @@ filtered = filter_data(
 
 # Display filtered data
 st.subheader(f"Population Table ({dataset_name})")
-st.dataframe(filtered, use_container_width=True)
+
+# user can select the population from the table
+selection = st.dataframe(
+    filtered.reset_index(drop=True),
+    use_container_width=True,
+    on_select="rerun",     # rerun the script automatically
+    selection_mode="single-row"
+)
 
 # side by side columns for map and pie chart
 col1, col2 = st.columns([2,1])
