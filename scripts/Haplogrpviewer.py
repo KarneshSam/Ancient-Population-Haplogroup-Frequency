@@ -59,3 +59,21 @@ filtered = df[(df.Age >= age_range[0]) &
 # Display filtered data
 st.subheader(f"Population Table ({dataset_name})")
 st.dataframe(filtered, use_container_width=True)
+
+# side by side columns for map and pie chart
+col1, col2 = st.columns([2,1])
+clicked_pop = None
+
+# map
+with col1:
+    st.subheader("Geographic Distribution of Ancient Populations")
+
+    center_lat = filtered["Lat"].mean()
+    center_long = filtered["Long"].mean()
+    
+    m = folium.Map(location=[center_lat, center_long], zoom_start=5, tiles=None)
+    folium.TileLayer(
+        tiles="https://cartodb-basemaps-a.global.ssl.fastly.net/light_all/{z}/{x}/{y}{r}.png",
+        attr="©OpenStreetMap, ©CartoDB", control=False).add_to(m)
+    
+    marker_cluster = MarkerCluster().add_to(m)
