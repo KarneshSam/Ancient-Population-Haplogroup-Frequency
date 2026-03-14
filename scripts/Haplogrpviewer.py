@@ -154,3 +154,25 @@ if clicked_pop:
     if table_data:
             st.table(pd.DataFrame(table_data))
     
+    # sunburst (left-aligned)
+    if sunburst_data["Basal"]:
+            st.markdown("#### Haplogroup Substructure")
+            col_sb1, col_sb2 = st.columns([1,2])
+
+            with col_sb1:
+                sunburst_df = pd.DataFrame(sunburst_data)
+                sunburst_fig = px.sunburst(
+                    sunburst_df,
+                    path=['Basal','Sub'],
+                    values='Count',
+                    color='Basal'
+                )
+                sunburst_fig.update_traces(textinfo='label+percent parent')
+                sunburst_fig.update_layout(
+                    width=450,
+                    height=450,
+                    paper_bgcolor="white",
+                    plot_bgcolor="white"
+                )
+                st.plotly_chart(sunburst_fig)
+
