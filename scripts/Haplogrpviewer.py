@@ -78,6 +78,28 @@ def filter_data(df, age_min, age_max, countries, sexes):
         (df.Country.isin(countries)) & (df.Sex.isin(sexes))
     ].copy()
 
+# Cached map building — plain Marker objects, cached so only rebuilds on filter change
+@st.cache_data
+def build_base_map(df_subset, center_lat, center_long, zoom):
+    m = folium.Map(location=[center_lat, center_long], zoom_start=zoom, tiles=None)
+    folium.TileLayer(
+        tiles="https://cartodb-basemaps-a.global.ssl.fastly.net/light_all/{z}/{x}/{y}{r}.png",
+        attr="©OpenStreetMap, ©CartoDB",
+        control=False,
+    ).add_to(m)
+
+    mc = MarkerCluster(options={"disableClusteringAtZoom": 10}).add_to(m)
+    for _, r in df_subset.iterrows():
+        marker_key = f"{r['Ancient pop']}|{r['Sex']}"
+        folium.Marker(
+            location=[r["Lat"], r["Long"]],
+            popup=folium.Popup(marker_key, parse_html=False),
+            tooltip=f"{r['Ancient pop']} | {r['Sex']} | n={r['total']}",
+            icon=folium.Icon(color="blue", icon="info-sign"),
+        ).add_to(mc)
+
+    return m
+
 filtered = filter_data(
     df,
     age_range[0], age_range[1],
@@ -99,23 +121,10 @@ with col1:
 
     center_lat = filtered["Lat"].mean()
     center_long = filtered["Long"].mean()
+    zoom = 5
+    # Build base map — cached, won't rebuild unless filtered data changes
+    m = build_base_map(filtered, center_lat, center_long, zoom)
     
-    m = folium.Map(location=[center_lat, center_long], zoom_start=5, tiles=None)
-    folium.TileLayer(
-        tiles="https://cartodb-basemaps-a.global.ssl.fastly.net/light_all/{z}/{x}/{y}{r}.png",
-        attr="©OpenStreetMap, ©CartoDB", control=False).add_to(m)
-    
-    marker_cluster = MarkerCluster().add_to(m)
-    for idx, r in filtered.iterrows():
-        # unique key combining population and sex
-        marker_key = f"{r['Ancient pop']}|{r['Sex']}"
-        tooltip_text = f"{r['Ancient pop']} | Sex: {r['Sex']} | Total: {r['total']}"
-        folium.Marker(location=[r["Lat"], r["Long"]],
-                      popup=marker_key,
-                      tooltip=tooltip_text,
-                      icon=folium.Icon(color="blue", icon="info-sign")
-                     ).add_to(marker_cluster)
-        
     map_data = st_folium(m, width=800, height=600)
 
 # pie chart
