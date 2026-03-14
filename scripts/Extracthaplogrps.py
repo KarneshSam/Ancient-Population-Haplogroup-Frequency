@@ -207,59 +207,38 @@ def create_frequency_table(df, hap_column, outfile, include_sex=False):
     df["basal"] = df[hap_column].str.extract(r'^([A-Z])')
 
     # Basal haplists
-    # for sex-specific haplogroup list
-    if include_sex:
-        # Extract the haplogroups for each Ancient pop with repect to the basal haplogroup
-        hap_lists = (
-            df.groupby(["Ancient pop", "Sex", "basal"])[hap_column]
+    # Extract the haplogroups for each Ancient pop with repect to the basal haplogroup
+    hap_lists = (
+        df.groupby(["Ancient pop", "Sex", "basal"])[hap_column]
               .apply(lambda x: ",".join(x))
               .unstack()
               ).reset_index()
-        hap_lists = hap_lists[~hap_lists["Sex"].str.startswith(("c", "U"), na=False)] # Remove rows where Sex starts with "c" or "U" (child or unknown)
-        haplists_file = outfile.replace(".tsv", "_haplists.tsv")
-    # for non sex-specific haplogroup list    
-    else:
-        hap_lists = (
-            df.groupby(["Ancient pop", "basal"])[hap_column]
-              .apply(lambda x: ",".join(x))
-              .unstack()
-              ).reset_index()
-        haplists_file = outfile.replace(".tsv", "_haplists.tsv")
-
+    hap_lists = hap_lists[~hap_lists["Sex"].str.startswith(("c", "U"), na=False)] # Remove rows where Sex starts with "c" or "U" (child or unknown)
+    
     # Clean Ancient pop names ("_" to " ")
     if "Ancient pop" in hap_lists.columns:
         hap_lists["Ancient pop"] = hap_lists["Ancient pop"].astype(str).str.replace("_", " ")
+    
+    haplists_file = outfile.replace(".tsv", "_haplists.tsv")
         
     # Save the haplogroup lists to a separate file
     hap_lists.to_csv(haplists_file, sep="\t", index=False)
 
-    # Frequency table
-    if include_sex:
-        freq = df.groupby(["Ancient pop","Sex","basal"]).size().unstack(fill_value=0).reset_index()
-        freq["total"] = freq.select_dtypes(include="number").sum(axis=1)      # total count for each Ancient pop; includes only the numeric columns (the haplogroups)
-        # Metadata table with mean age, first country, mean lat and long for each Ancient pop
-        meta = df.groupby(["Ancient pop","Sex"]).agg({
+    # Frequency tables
+    freq = df.groupby(["Ancient pop","Sex","basal"]).size().unstack(fill_value=0).reset_index()
+    freq["total"] = freq.select_dtypes(include="number").sum(axis=1)      # total count for each Ancient pop; includes only the numeric columns (the haplogroups)
+    
+    # Metadata table with mean age, first country, mean lat and long for each Ancient pop
+    meta = df.groupby(["Ancient pop","Sex"]).agg({
             "Age": "mean",
             "Country": "first",
             "Lat": "mean",
             "Long": "mean"
             }).reset_index()
-        meta["Age"] = meta["Age"].round().astype(int)
-        final = meta.merge(freq, on=["Ancient pop","Sex"], how="inner")
-        final = final[~final["Sex"].str.startswith(("c", "U"), na=False)] # Remove rows where Sex starts with "c" or "U" (child or unknown)
-    else:
-        freq = df.groupby(["Ancient pop","basal"]).size().unstack(fill_value=0).reset_index()
-        freq["total"] = freq.select_dtypes(include="number").sum(axis=1)
-        # Metadata table with mean age, first country, mean lat and long for each Ancient pop
-        meta = df.groupby("Ancient pop").agg({
-            "Age": "mean",
-            "Country": "first",
-            "Sex": "first",
-            "Lat": "mean",
-            "Long": "mean"
-            }).reset_index()
-        meta["Age"] = meta["Age"].round().astype(int)
-        final = meta.merge(freq, on="Ancient pop", how="inner")
+    meta["Age"] = meta["Age"].round().astype(int)
+
+    final = meta.merge(freq, on=["Ancient pop","Sex"], how="inner")
+    final = final[~final["Sex"].str.startswith(("c", "U"), na=False)] # Remove rows where Sex starts with "c" or "U" (child or unknown)
     
     # Clean Ancient pop names ("_" to " ")
     if "Ancient pop" in final.columns:
