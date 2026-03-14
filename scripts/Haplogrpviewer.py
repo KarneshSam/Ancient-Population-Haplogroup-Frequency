@@ -39,3 +39,19 @@ dataset_name = st.sidebar.selectbox("Select Dataset", list(datasets.keys()))
 df = datasets[dataset_name]["freq"]
 df_sub = datasets[dataset_name]["sub"]
 
+# Filters sidebar
+st.sidebar.header("Filters")
+age_range = st.sidebar.slider("Age Range", int(df.Age.min()), int(df.Age.max()), (int(df.Age.min()), int(df.Age.max())))
+country_filter = st.sidebar.multiselect("Country", df.Country.unique(), default=df.Country.unique())
+sex_filter = st.sidebar.multiselect("Sex", df.Sex.unique(), default=df.Sex.unique())
+
+# Apply filters
+# create a copy of the filtered dataframe to avoid SettingWithCopyWarning
+filtered = df[(df.Age >= age_range[0]) &
+              (df.Age <= age_range[1]) &
+              (df.Country.isin(country_filter)) &
+              (df.Sex.isin(sex_filter))].copy()
+
+# Display filtered data
+st.subheader(f"Population Table ({dataset_name})")
+st.dataframe(filtered, use_container_width=True)
