@@ -35,7 +35,6 @@ Y_TERM_SUB  = args.y_term_sub
 Y_ISO_SUB   = args.y_iso_sub
 MT_SUB      = args.mt_sub
 
-# Page config
 st.set_page_config(layout="wide")
 st.title("Ancient Population Haplogroup Explorer")
 
@@ -96,14 +95,22 @@ for key, default in [
     ("clicked_pop", None),
     ("clicked_sex", None),
     ("prev_dataset", None),
-
-]:
+    ("table_key", 0)]:
     if key not in st.session_state:
         st.session_state[key] = default
 
 # Dataset selection sidebar
 st.sidebar.header("Dataset Selection")
 dataset_name = st.sidebar.selectbox("Select Dataset", list(datasets.keys()))
+
+# Reset state when dataset changes
+if st.session_state.prev_dataset != dataset_name:
+    st.session_state.clicked_pop  = None
+    st.session_state.clicked_sex  = None
+    st.session_state.fly_to       = None
+    st.session_state.table_key   += 1
+    st.session_state.prev_dataset = dataset_name
+
 df = datasets[dataset_name]["freq"]
 df_sub = datasets[dataset_name]["sub"]
 
@@ -154,6 +161,8 @@ with col1:
      center_lat = filtered["Lat"].mean()
      center_long = filtered["Long"].mean()
      zoom = 5
+    else:
+        center_lat, center_long, zoom = 20.0, 0.0, 2
     # Build base map — cached, won't rebuild unless filtered data changes
     m = build_base_map(filtered, center_lat, center_long, zoom)
     
@@ -167,8 +176,13 @@ with col1:
             tooltip=f"{sel_row['Ancient pop']} | {sel_row['Sex']} | n={sel_row['total']}",
             icon=folium.Icon(color="red", icon="map-marker"),
         ).add_to(m)
-
-    map_data = st_folium(m, width=800, height=600)
+    map_key = (
+        f"map_{dataset_name}_{age_range[0]}_{age_range[1]}_"
+        f"{','.join(sorted(country_filter))}_{','.join(sorted(sex_filter))}"
+    )
+    map_data = st_folium(m, width=800, height=600,
+                         returned_objects=["last_object_clicked_popup"],
+                         key=map_key)
 
     # Map marker click — parse popup, update state, clear table selection
     raw_popup = map_data.get("last_object_clicked_popup") if map_data else None
