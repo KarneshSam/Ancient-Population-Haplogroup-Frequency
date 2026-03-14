@@ -200,7 +200,7 @@ with col2:
     
     if clicked_pop:
         # select row from main df
-        row = df[(df["Ancient pop"] == clicked_pop) & (df["Sex"] == clicked_sex)].iloc[0]
+        row = df[(df["Ancient pop"] == clicked_pop) & (df["Sex"] == clicked_sex)]
         if not row.empty:
          row = row.iloc[0]
          # get haplogroup frequencies for this population
@@ -236,11 +236,13 @@ if clicked_pop:
     
     # select row from subhap df
     sub_row = df_sub[(df_sub["Ancient pop"] == clicked_pop) & (df_sub["Sex"] == clicked_sex)].iloc[0]
-    # create a table
-    table_data = []
-    sunburst_data = {"Basal": [], "Sub": [], "Count": []}
+    if not sub_row.empty:
+        sub_row = sub_row.iloc[0]
+        # create a table
+        table_data = []
+        sunburst_data = {"Basal": [], "Sub": [], "Count": []}
 
-    for basal in hap.index:
+        for basal in hap.index:
             sub_text = sub_row.get(basal, "")
             if pd.isna(sub_text) or str(sub_text).strip() == "":
                 continue
@@ -255,12 +257,12 @@ if clicked_pop:
                 sunburst_data["Sub"].append(s)
                 sunburst_data["Count"].append(val)
 
-    # display table
-    if table_data:
+        # display table
+        if table_data:
             st.table(pd.DataFrame(table_data))
     
-    # sunburst (left-aligned)
-    if sunburst_data["Basal"]:
+        # sunburst (left-aligned)
+        if sunburst_data["Basal"]:
             st.markdown("#### Haplogroup Substructure")
             col_sb1, col_sb2 = st.columns([1,2])
 
@@ -280,4 +282,5 @@ if clicked_pop:
                     plot_bgcolor="white"
                 )
                 st.plotly_chart(sunburst_fig)
-
+    else:
+        st.info("No subhaplogroup data available for this population.")
