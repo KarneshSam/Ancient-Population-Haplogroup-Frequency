@@ -164,17 +164,33 @@ with col1:
         folium.Marker(
             location=list(st.session_state.fly_to),
             popup=folium.Popup(marker_key, parse_html=False),
-            tooltip=f"{sel_row['Ancient pop']} | {sel_row['Sex']} | n={r['total']}",
+            tooltip=f"{sel_row['Ancient pop']} | {sel_row['Sex']} | n={sel_row['total']}",
             icon=folium.Icon(color="red", icon="map-marker"),
         ).add_to(m)
 
     map_data = st_folium(m, width=800, height=600)
 
+    # Map marker click — parse popup, update state, clear table selection
+    raw_popup = map_data.get("last_object_clicked_popup") if map_data else None
+    if raw_popup and "|" in raw_popup:
+        # Strip any HTML wrapping that folium might add
+        clean = raw_popup.strip().replace("<br>", "").replace("\n", "").strip()
+        if "|" in clean:
+            p, s = clean.split("|", 1)
+            p = p.strip()
+            s = s.strip()
+            if (p != st.session_state.clicked_pop or s != st.session_state.clicked_sex
+                    or st.session_state.fly_to is not None):
+                st.session_state.clicked_pop = p
+                st.session_state.clicked_sex = s
+                st.session_state.fly_to      = None
+                st.session_state.table_key  += 1
+                st.rerun()
+
+
 # pie chart
 with col2:
-    st.subheader("Basal Haplogroup Distribution")
-    clicked_pop = None
-    clicked_sex = None
+    st.subheader("Basal Haplogroup Composition")
     
     if map_data and map_data.get("last_object_clicked"):
         clicked_key = map_data["last_object_clicked"]
