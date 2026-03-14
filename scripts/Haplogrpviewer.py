@@ -13,6 +13,10 @@ y_term_sub_path = "/home/inf-41-2025/BINP29/Popgenetics/y_hap_ter_freq_haplists.
 y_iso_sub_path  = "/home/inf-41-2025/BINP29/Popgenetics/y_hap_isogg_freq_haplists.tsv"
 mt_sub_path     = "/home/inf-41-2025/BINP29/Popgenetics/mt_hap_freq_haplists.tsv"
 
+# Page config
+st.set_page_config(layout="wide")
+st.title("Ancient Population Haplogroup Explorer")
+
 # load the datasets
 @st.cache_data
 def load_data():
