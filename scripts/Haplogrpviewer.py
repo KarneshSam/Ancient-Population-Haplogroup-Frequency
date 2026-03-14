@@ -89,6 +89,18 @@ def build_base_map(df_subset, center_lat, center_long, zoom):
 
     return m
 
+# need a storage
+# helpful when selecting a population from table
+for key, default in [
+    ("fly_to", None),
+    ("clicked_pop", None),
+    ("clicked_sex", None),
+    ("prev_dataset", None),
+
+]:
+    if key not in st.session_state:
+        st.session_state[key] = default
+
 # Dataset selection sidebar
 st.sidebar.header("Dataset Selection")
 dataset_name = st.sidebar.selectbox("Select Dataset", list(datasets.keys()))
@@ -118,21 +130,44 @@ selection = st.dataframe(
     on_select="rerun",     # rerun the script automatically
     selection_mode="single-row"
 )
+# stores the index of the selected row 
+selected_rows = selection.selection.rows
+if selected_rows:
+    sel_row = filtered.iloc[selected_rows[0]]
+    new_fly_to = (float(sel_row["Lat"]), float(sel_row["Long"]))
+    if st.session_state.fly_to != new_fly_to:
+        st.session_state.fly_to = new_fly_to
+        st.session_state.clicked_pop = sel_row["Ancient pop"]
+        st.session_state.clicked_sex = sel_row["Sex"]
 
 # side by side columns for map and pie chart
 col1, col2 = st.columns([2,1])
-clicked_pop = None
 
 # map
 with col1:
     st.subheader("Geographic Distribution of Ancient Populations")
-
-    center_lat = filtered["Lat"].mean()
-    center_long = filtered["Long"].mean()
-    zoom = 5
+    
+    if st.session_state.fly_to:
+        center_lat, center_long = st.session_state.fly_to
+        zoom = 7
+    elif not filtered.empty:
+     center_lat = filtered["Lat"].mean()
+     center_long = filtered["Long"].mean()
+     zoom = 5
     # Build base map — cached, won't rebuild unless filtered data changes
     m = build_base_map(filtered, center_lat, center_long, zoom)
     
+    # Red marker added outside cache — reflects live selection state
+    if st.session_state.fly_to and selected_rows:
+        sel_row    = filtered.iloc[selected_rows[0]]
+        marker_key = f"{sel_row['Ancient pop']}|{sel_row['Sex']}"
+        folium.Marker(
+            location=list(st.session_state.fly_to),
+            popup=folium.Popup(marker_key, parse_html=False),
+            tooltip=f"{sel_row['Ancient pop']} | {sel_row['Sex']} | n={r['total']}",
+            icon=folium.Icon(color="red", icon="map-marker"),
+        ).add_to(m)
+
     map_data = st_folium(m, width=800, height=600)
 
 # pie chart
