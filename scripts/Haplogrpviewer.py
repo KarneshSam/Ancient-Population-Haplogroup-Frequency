@@ -122,3 +122,13 @@ with col2:
             st.plotly_chart(fig)
     else:
         st.info("Click a marker on the map to see the pie chart.")
+
+# subhaplogroup table
+if clicked_pop:
+    st.markdown("---")
+    st.markdown(f"### Population: {clicked_pop} ({clicked_sex})")
+    st.markdown("#### Subhaplogroup Breakdown")
+    
+    # select row from subhap df
+    sub_row = df_sub[(df_sub["Ancient pop"] == clicked_pop) & (df_sub["Sex"] == clicked_sex)].iloc[0]
+    
