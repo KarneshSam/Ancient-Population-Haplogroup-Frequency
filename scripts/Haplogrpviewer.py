@@ -106,3 +106,10 @@ with col2:
         hap_cols = [c for c in df.columns if c not in ["Ancient pop","Country","Age","Lat","Long","Sex","total"]]
         hap = row[hap_cols]
         hap = hap[hap > 0]  # remove zero haplogroups
+    
+    if not hap.empty:
+            fig = px.pie(values=hap, title=clicked_key, names=hap.index)
+            
+            st.plotly_chart(fig)
+    else:
+        st.info("Click a marker on the map to see the pie chart.")
