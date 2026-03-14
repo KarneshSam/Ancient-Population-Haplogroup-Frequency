@@ -109,6 +109,10 @@ with col2:
     
     if not hap.empty:
             fig = px.pie(values=hap, title=clicked_key, names=hap.index)
+            fig.update_traces(textinfo='percent+label',
+                hovertemplate='%{label}: %{value}<br>%{percent}',
+                textfont=dict(size=12, color="black"),
+                domain=dict(x=[0,1], y=[0,1]))
             fig.update_layout(width=350, height=350,
                 legend=dict(title=dict(text="Basal Haplogroups", font=dict(size=12, color="black")),
                     font=dict(size=10, color="black"),orientation="v",
