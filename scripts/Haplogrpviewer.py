@@ -183,15 +183,17 @@ with col1:
                     or st.session_state.fly_to is not None):
                 st.session_state.clicked_pop = p
                 st.session_state.clicked_sex = s
-                st.session_state.fly_to      = None
+                st.session_state.fly_to = None
                 st.session_state.table_key  += 1
                 st.rerun()
-
 
 # pie chart
 with col2:
     st.subheader("Basal Haplogroup Composition")
-    
+    clicked_pop = st.session_state.clicked_pop
+    clicked_sex = st.session_state.clicked_sex
+    hap = None
+
     if map_data and map_data.get("last_object_clicked"):
         clicked_key = map_data["last_object_clicked"]
         clicked_pop, clicked_sex = clicked_key.split("|")
@@ -199,12 +201,14 @@ with col2:
     if clicked_pop:
         # select row from main df
         row = df[(df["Ancient pop"] == clicked_pop) & (df["Sex"] == clicked_sex)].iloc[0]
-        # get haplogroup frequencies for this population
-        hap_cols = [c for c in df.columns if c not in ["Ancient pop","Country","Age","Lat","Long","Sex","total"]]
-        hap = row[hap_cols]
-        hap = hap[hap > 0]  # remove zero haplogroups
+        if not row.empty:
+         row = row.iloc[0]
+         # get haplogroup frequencies for this population
+         hap_cols = [c for c in df.columns if c not in ["Ancient pop","Country","Age","Lat","Long","Sex","total"]]
+         hap = row[hap_cols]
+         hap = hap[hap > 0]  # remove zero haplogroups
     
-    if not hap.empty:
+         if not hap.empty:
             fig = px.pie(values=hap, title=clicked_key, names=hap.index)
             fig.update_traces(textinfo='percent+label',
                 hovertemplate='%{label}: %{value}<br>%{percent}',
@@ -217,8 +221,12 @@ with col2:
                 title_font=dict(size=12, color="black", family="Arial Black"),
                 paper_bgcolor="white", plot_bgcolor="white")
             st.plotly_chart(fig)
+         else:
+                st.warning("No haplogroup data for this population.")
+        else:
+            st.warning("Population not found in dataset.")
     else:
-        st.info("Click a marker on the map to see the pie chart.")
+        st.info("🗺️ Click a marker on the map to see the pie chart.")
 
 # subhaplogroup table
 if clicked_pop:
