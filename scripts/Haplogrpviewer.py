@@ -22,7 +22,7 @@ def parse_arguments():
     parser.add_argument("--mt_sub", required=True,
                         help="mtDNA subhaplogroup list")
 
-    args = parser.parse_args()
+    args, _ = parser.parse_known_args()
     return args
 
 args = parse_arguments()
@@ -69,11 +69,21 @@ country_filter = st.sidebar.multiselect("Country", df.Country.unique(), default=
 sex_filter = st.sidebar.multiselect("Sex", df.Sex.unique(), default=df.Sex.unique())
 
 # Apply filters
+# @st.cache_data store in memory
 # create a copy of the filtered dataframe to avoid SettingWithCopyWarning
-filtered = df[(df.Age >= age_range[0]) &
-              (df.Age <= age_range[1]) &
-              (df.Country.isin(country_filter)) &
-              (df.Sex.isin(sex_filter))].copy()
+@st.cache_data
+def filter_data(df, age_min, age_max, countries, sexes):
+    return df[
+        (df.Age >= age_min) & (df.Age <= age_max) &
+        (df.Country.isin(countries)) & (df.Sex.isin(sexes))
+    ].copy()
+
+filtered = filter_data(
+    df,
+    age_range[0], age_range[1],
+    tuple(sorted(country_filter)),
+    tuple(sorted(sex_filter))
+)
 
 # Display filtered data
 st.subheader(f"Population Table ({dataset_name})")
