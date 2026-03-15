@@ -249,22 +249,22 @@ All frequency tables include: Ancient population name, sex, mean age (BP), count
 ### Sidebar — Dataset Selection and Filters
 Select between Y haplogroup (terminal), Y haplogroup (ISOGG), or mtDNA datasets. Filter populations by age range, country, and sex.
  
-![Sidebar dataset selection and filters](screenshot_sidebar.png)
+![Sidebar dataset selection and filters](docs/screenshot_sidebar.png)
  
 ### Geographic Map and Basal Haplogroup Pie Chart
 Ancient population locations are shown as clustered markers on an interactive map. Clicking a marker or selecting a row from the table displays the basal haplogroup composition as a pie chart.
  
-![Geographic map and pie chart](screenshot_map_piechart.png)
+![Geographic map and pie chart](docs/screenshot_map_piechart.png)
  
 ### Subhaplogroup Table
 For the selected population, a table lists all individual haplogroups belonging to each basal haplogroup group.
  
-![Subhaplogroup table](screenshot_subhap_table.png)
+![Subhaplogroup table](docs/screenshot_subhap_table.png)
  
 ### Haplogroup Substructure — Sunburst Diagram
 A sunburst diagram visualizes the hierarchical relationship between basal haplogroups and their constituent subhaplogroups.
  
-![Sunburst diagram](screenshot_sunburst.png)
+![Sunburst diagram](docs/screenshot_sunburst.png)
 
 ## People Involved
 
