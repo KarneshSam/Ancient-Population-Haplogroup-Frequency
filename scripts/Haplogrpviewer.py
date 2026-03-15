@@ -1,3 +1,8 @@
+# Streamlit for interactive web application
+# Folium for map visualization
+# Plotly for pie charts and sunburst diagrams
+# argparse for command-line argument parsing
+# pandas for data manipulation
 import streamlit as st
 import pandas as pd
 import folium
@@ -6,8 +11,12 @@ import plotly.express as px
 from streamlit_folium import st_folium
 import argparse
 
-def parse_arguments():
+#######################################
+# 1. ARGUMENT PARSING
+#######################################
 
+# Define command-line arguments for dataset paths
+def parse_arguments():
     parser = argparse.ArgumentParser(description="Ancient Haplogroup Viewer")
     parser.add_argument("--y_term", required=True, 
                         help="Y haplogroup terminal mutation frequency")
@@ -21,24 +30,36 @@ def parse_arguments():
                         help="Y ISOGG subhaplogroup list")
     parser.add_argument("--mt_sub", required=True,
                         help="mtDNA subhaplogroup list")
-
+    # Parse known args to allow Streamlit's own arguments to pass through
     args, _ = parser.parse_known_args()
     return args
-
+# Parse arguments
 args = parse_arguments()
 
+# Store dataset paths in variables
+# for Frequency data
 Y_TERM_PATH = args.y_term
-Y_ISO_PATH  = args.y_iso
-MT_PATH     = args.mt
+Y_ISO_PATH = args.y_iso
+MT_PATH = args.mt
 
-Y_TERM_SUB  = args.y_term_sub
-Y_ISO_SUB   = args.y_iso_sub
-MT_SUB      = args.mt_sub
+# for Subhaplogroup list data
+Y_TERM_SUB = args.y_term_sub
+Y_ISO_SUB = args.y_iso_sub
+MT_SUB = args.mt_sub
 
+#######################################
+# 2. PAGE SETUP
+#######################################
+
+# Streamlit page configuration
 st.set_page_config(layout="wide")
 st.title("Ancient Population Haplogroup Explorer")
 
-# load the datasets
+#######################################
+# 3. LOAD DATA
+#######################################
+
+# Load all datasets at once and cache them to avoid reloading on every interaction
 @st.cache_data
 def load_data():
     return {
@@ -50,22 +71,29 @@ def load_data():
             "sub":  pd.read_csv(Y_ISO_SUB, sep="\t")},
         "mtDNA haplogroup": {
             "freq": pd.read_csv(MT_PATH, sep="\t"),
-            "sub":  pd.read_csv(MT_SUB, sep="\t")},
-        }
-
+            "sub":  pd.read_csv(MT_SUB, sep="\t")}}
+# Load datasets
 datasets = load_data()
 
-# Apply filters
-# @st.cache_data store in memory
+#######################################
+# 4. FILTERING FUNCTION
+#######################################
+
+# Apply filters to the main frequency dataframe based on user input
 # create a copy of the filtered dataframe to avoid SettingWithCopyWarning
 @st.cache_data
 def filter_data(df, age_min, age_max, countries, sexes):
     return df[
         (df.Age >= age_min) & (df.Age <= age_max) &
         (df.Country.isin(countries)) & (df.Sex.isin(sexes))
-    ].copy()
+        ].copy()
+
+#######################################
+# 5. BUILD BASE MAP FUNCTION
+#######################################
 
 # Cached map building — plain Marker objects, cached so only rebuilds on filter change
+# markers added outside cache to reflect live selection state without full map rebuild
 @st.cache_data
 def build_base_map(df_subset, center_lat, center_long, zoom):
     m = folium.Map(location=[center_lat, center_long], zoom_start=zoom, tiles=None)
@@ -74,9 +102,10 @@ def build_base_map(df_subset, center_lat, center_long, zoom):
         attr="©OpenStreetMap, ©CartoDB",
         control=False,
     ).add_to(m)
-
+    # Use MarkerCluster to group nearby markers and improve performance
     mc = MarkerCluster(options={"disableClusteringAtZoom": 10}).add_to(m)
     
+    # Add markers for each row in the subset
     for _, r in df_subset.iterrows():
         marker_key = f"{r['Ancient pop']}|{r['Sex']}"
         folium.Marker(
@@ -88,8 +117,13 @@ def build_base_map(df_subset, center_lat, center_long, zoom):
 
     return m
 
-# need a storage
-# helpful when selecting a population from table
+#######################################
+# 6. SESSION STATE AND INTERACTION LOGIC
+#######################################
+
+# Initialize session state variables to track map centering and selected population
+# fly_to: (lat, long) to control map centering
+# clicked_pop, clicked_sex: to track which population is selected
 for key, default in [
     ("fly_to", None),
     ("clicked_pop", None),
@@ -99,33 +133,45 @@ for key, default in [
     if key not in st.session_state:
         st.session_state[key] = default
 
+#######################################
+# 7. SIDEBAR SELECTION OF DATASET 
+#######################################
+
 # Dataset selection sidebar
 st.sidebar.header("Dataset Selection")
 dataset_name = st.sidebar.selectbox("Select Dataset", list(datasets.keys()))
 
 # Reset state when dataset changes
 if st.session_state.prev_dataset != dataset_name:
-    st.session_state.clicked_pop  = None
-    st.session_state.clicked_sex  = None
-    st.session_state.fly_to       = None
-    st.session_state.table_key   += 1
+    st.session_state.clicked_pop = None
+    st.session_state.clicked_sex = None
+    st.session_state.fly_to = None
+    st.session_state.table_key += 1
     st.session_state.prev_dataset = dataset_name
 
+# Get the selected dataset's frequency and subhaplogroup data
 df = datasets[dataset_name]["freq"]
 df_sub = datasets[dataset_name]["sub"]
 
+#######################################
+# 8. SIDEBAR FILTERS 
+#######################################
+
 # Filters sidebar
 st.sidebar.header("Filters")
+# create a age slider with min and max from the dataset, default to full range
 age_range = st.sidebar.slider("Age Range", int(df.Age.min()), int(df.Age.max()), (int(df.Age.min()), int(df.Age.max())))
+# create a multiselect for country and sex, default to all options
 country_filter = st.sidebar.multiselect("Country", df.Country.unique(), default=df.Country.unique())
 sex_filter = st.sidebar.multiselect("Sex", df.Sex.unique(), default=df.Sex.unique())
 
+# Apply filters to the main dataframe and 
+# cache the result to avoid re-filtering on every interaction
 filtered = filter_data(
     df,
     age_range[0], age_range[1],
     tuple(sorted(country_filter)),
-    tuple(sorted(sex_filter))
-)
+    tuple(sorted(sex_filter)))
 
 # Display filtered data
 st.subheader(f"Population Table ({dataset_name})")
@@ -135,10 +181,12 @@ selection = st.dataframe(
     filtered.reset_index(drop=True),
     use_container_width=True,
     on_select="rerun",     # rerun the script automatically
-    selection_mode="single-row"
-)
+    selection_mode="single-row")
+
 # stores the index of the selected row 
 selected_rows = selection.selection.rows
+# if a row is selected, update the fly_to state to center the map on that population 
+# and update the clicked population and clicked sex state variables to reflect the selection
 if selected_rows:
     sel_row = filtered.iloc[selected_rows[0]]
     new_fly_to = (float(sel_row["Lat"]), float(sel_row["Long"]))
@@ -150,10 +198,14 @@ if selected_rows:
 # side by side columns for map and pie chart
 col1, col2 = st.columns([2,1])
 
-# map
+#######################################
+# 9. MAP AND INTERACTION LOGIC
+#######################################
+
+# Map visualization in the first column — cached base map with dynamic marker for selection
 with col1:
     st.subheader("Geographic Distribution of Ancient Populations")
-    
+    # Determine map center and zoom level based on selection or filtered data
     if st.session_state.fly_to:
         center_lat, center_long = st.session_state.fly_to
         zoom = 7
@@ -176,13 +228,13 @@ with col1:
             tooltip=f"{sel_row['Ancient pop']} | {sel_row['Sex']} | n={sel_row['total']}",
             icon=folium.Icon(color="red", icon="map-marker"),
         ).add_to(m)
+    # Folium map in Streamlit with a unique key to preserve state across interactions    
     map_key = (
         f"map_{dataset_name}_{age_range[0]}_{age_range[1]}_"
-        f"{','.join(sorted(country_filter))}_{','.join(sorted(sex_filter))}"
-    )
+        f"{','.join(sorted(country_filter))}_{','.join(sorted(sex_filter))}")
     map_data = st_folium(m, width=800, height=600,
-                         returned_objects=["last_object_clicked_popup"],
-                         key=map_key)
+                         returned_objects=["last_object_clicked_popup"],  # capture popup clicks
+                         key=map_key)  
 
     # Map marker click — parse popup, update state, clear table selection
     raw_popup = map_data.get("last_object_clicked_popup") if map_data else None
@@ -191,8 +243,9 @@ with col1:
         clean = raw_popup.strip().replace("<br>", "").replace("\n", "").strip()
         if "|" in clean:
             p, s = clean.split("|", 1)
-            p = p.strip()
-            s = s.strip()
+            p = p.strip()   # population
+            s = s.strip()   # sex
+            # Only update state if the clicked marker is different from the current selection to avoid unnecessary reruns
             if (p != st.session_state.clicked_pop or s != st.session_state.clicked_sex
                     or st.session_state.fly_to is not None):
                 st.session_state.clicked_pop = p
@@ -201,65 +254,82 @@ with col1:
                 st.session_state.table_key  += 1
                 st.rerun()
 
-# pie chart
+#######################################
+# 10. PIE CHART POPULATION COMPOSITION 
+#######################################
+
+# Pie chart of basal haplogroup composition for the selected population in the second column
 with col2:
     st.subheader("Basal Haplogroup Composition")
     clicked_pop = st.session_state.clicked_pop
     clicked_sex = st.session_state.clicked_sex
     hap = None
-
-    if map_data and map_data.get("last_object_clicked"):
-        clicked_key = map_data["last_object_clicked"]
-        clicked_pop, clicked_sex = clicked_key.split("|")
     
-    if clicked_pop:
-        # select row from main df
+    if clicked_pop and clicked_sex:
+        # select row from filtered dataframe based on clicked population and sex
         row = df[(df["Ancient pop"] == clicked_pop) & (df["Sex"] == clicked_sex)]
+        # if the row exists, get the haplogroup frequencies and create a pie chart
         if not row.empty:
-         row = row.iloc[0]
-         # get haplogroup frequencies for this population
-         hap_cols = [c for c in df.columns if c not in ["Ancient pop","Country","Age","Lat","Long","Sex","total"]]
-         hap = row[hap_cols]
-         hap = hap[hap > 0]  # remove zero haplogroups
-    
-         if not hap.empty:
-            fig = px.pie(values=hap, title=clicked_key, names=hap.index)
-            fig.update_traces(textinfo='percent+label',
-                hovertemplate='%{label}: %{value}<br>%{percent}',
-                textfont=dict(size=12, color="black"),
-                domain=dict(x=[0,1], y=[0,1]))
-            fig.update_layout(width=350, height=350,
-                legend=dict(title=dict(text="Basal Haplogroups", font=dict(size=12, color="black")),
-                    font=dict(size=10, color="black"),orientation="v",
-                    yanchor="middle", y=0.5, xanchor="left", x=1.05),
-                title_font=dict(size=12, color="black", family="Arial Black"),
-                paper_bgcolor="white", plot_bgcolor="white")
-            st.plotly_chart(fig)
-         else:
+             row = row.iloc[0]
+             # get haplogroup frequencies for this population
+             hap_cols = [c for c in df.columns if c not in ["Ancient pop","Country","Age","Lat","Long","Sex","total"]]
+             hap = row[hap_cols]
+             hap = hap[hap > 0]  # remove zero haplogroups
+             # create pie chart using plotly express
+             # only create the chart if there are haplogroups to display, otherwise show a warning
+             if not hap.empty:
+                fig = px.pie(values=hap, title=f"{clicked_pop} | {clicked_sex}", names=hap.index)
+                
+                # customize the pie chart appearance
+                # show both percentage and label on the chart, and 
+                # customize the hover template to show label, value, and percentage
+                fig.update_traces(textinfo='percent+label',
+                        hovertemplate='%{label}: %{value}<br>%{percent}',
+                        textfont=dict(size=12, color="black"),
+                        domain=dict(x=[0,1], y=[0,1]))
+                fig.update_layout(width=350, height=350,
+                        legend=dict(title=dict(text="Basal Haplogroups", font=dict(size=12, color="black")),
+                        font=dict(size=10, color="black"),orientation="v",
+                        yanchor="middle", y=0.5, xanchor="left", x=1.05),
+                        title_font=dict(size=12, color="black", family="Arial Black"),
+                        paper_bgcolor="white", plot_bgcolor="white")
+                st.plotly_chart(fig)
+             else:
                 st.warning("No haplogroup data for this population.")
         else:
             st.warning("Population not found in dataset.")
     else:
         st.info("🗺️ Click a marker on the map to see the pie chart.")
 
-# subhaplogroup table
-if clicked_pop:
+#######################################
+# 11. SUBHAPLOGROUP TABLE AND SUNBURST DIAGRAM
+#######################################
+
+# If a population is selected, display a table of subhaplogroups and 
+# a sunburst diagram showing the relationship between basal haplogroups and their subhaplogroups
+if clicked_pop and hap is not None and not hap.empty:
     st.markdown("---")
     st.markdown(f"### Population: {clicked_pop} ({clicked_sex})")
-    st.markdown("#### Subhaplogroup Breakdown")
+    st.markdown("#### Subhaplogroup lists")
     
     # select row from subhap df
-    sub_row = df_sub[(df_sub["Ancient pop"] == clicked_pop) & (df_sub["Sex"] == clicked_sex)].iloc[0]
+    sub_row = df_sub[(df_sub["Ancient pop"] == clicked_pop) & (df_sub["Sex"] == clicked_sex)]
+    # if the row exists, create a table of basal haplogroups and their subhaplogroups, 
+    # and a sunburst diagram showing the relationship between them
     if not sub_row.empty:
-        sub_row = sub_row.iloc[0]
+        sub_row = sub_row.iloc[0]   # get the first (and should be only) matching row
         # create a table
         table_data = []
         sunburst_data = {"Basal": [], "Sub": [], "Count": []}
-
+        
+        # iterate over basal haplogroups and get their subhaplogroups from the subhap dataframe
         for basal in hap.index:
             sub_text = sub_row.get(basal, "")
+            # if there is no subhaplogroup data for this basal haplogroup, skip it
             if pd.isna(sub_text) or str(sub_text).strip() == "":
                 continue
+            # split the subhaplogroup text by comma and strip whitespace, 
+            # then add to the table data and sunburst data
             sub_list = [s.strip() for s in str(sub_text).split(",")]
             table_data.append({"Basal Haplogroup": basal, "Subhaplogroups": ", ".join(sub_list)})
 
@@ -271,30 +341,33 @@ if clicked_pop:
                 sunburst_data["Sub"].append(s)
                 sunburst_data["Count"].append(val)
 
-        # display table
+        # display table - Subhaplogroup lists (right-aligned)
         if table_data:
             st.table(pd.DataFrame(table_data))
     
-        # sunburst (left-aligned)
+        # sunburst plot (left-aligned)
         if sunburst_data["Basal"]:
             st.markdown("#### Haplogroup Substructure")
             col_sb1, col_sb2 = st.columns([1,2])
-
+            
             with col_sb1:
                 sunburst_df = pd.DataFrame(sunburst_data)
+                # create sunburst diagram using plotly express, 
+                # with basal haplogroups as the first level and 
+                # subhaplogroups as the second level, 
+                # and the count as the value
                 sunburst_fig = px.sunburst(
                     sunburst_df,
                     path=['Basal','Sub'],
-                    values='Count',
-                    color='Basal'
-                )
+                    values='Count', title=f"{clicked_pop} | {clicked_sex}",
+                    color='Basal')
+                # customize the sunburst diagram appearance
                 sunburst_fig.update_traces(textinfo='label+percent parent')
                 sunburst_fig.update_layout(
                     width=450,
-                    height=450,
+                    height=450, title_font=dict(size=12, color="black", family="Arial Black"),
                     paper_bgcolor="white",
-                    plot_bgcolor="white"
-                )
+                    plot_bgcolor="white")
                 st.plotly_chart(sunburst_fig)
     else:
         st.info("No subhaplogroup data available for this population.")
