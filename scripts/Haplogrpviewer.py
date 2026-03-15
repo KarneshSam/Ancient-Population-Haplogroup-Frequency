@@ -1,3 +1,135 @@
+#!/usr/bin/env python3
+
+"""
+Haplogrpviewer.py (script's name)
+
+Description:
+      This program is an interactive web application that visualizes ancient
+      population haplogroup distributions using geographic mapping and
+      interactive charts.
+      
+      The application loads haplogroup frequency tables and subhaplogroup
+      lists generated from the AADR annotation dataset. These datasets
+      summarize the distribution of Y-chromosome and mitochondrial haplogroups
+      across ancient populations.
+
+      The main objective of this application is to allow users to explore
+      haplogroup frequencies geographically and inspect the internal
+      structure of haplogroups within ancient populations.
+
+      Users can filter the dataset by age range, country, and sex, and then
+      interactively examine populations on a map. Selecting a population
+      displays haplogroup composition as pie charts and visualizes
+      subhaplogroup relationships using a sunburst diagram.
+
+      This tool integrates geographic visualization with hierarchical
+      haplogroup structure, making it easier to interpret genetic patterns
+      in ancient populations.
+
+      It also ensures robustness through error handling for missing files,
+      invalid inputs, and empty datasets, providing informative messages to guide users
+      and ensuring that user interactions do not cause runtime failures.
+      
+List of Functions:
+      1. parse_arguments – Parses command-line arguments specifying
+                           input dataset paths for haplogroup frequency
+                           tables and subhaplogroup lists.
+
+      2. check_file – Validates that required input files exist before
+                      loading them.
+
+      3. load_data – Loads haplogroup frequency tables and subhaplogroup
+                     list files using pandas and caches them to improve
+                     application performance.
+
+      4. filter_data – Applies user-selected filters such as age range,
+                       country, and sex to the frequency dataset.
+
+      5. build_base_map – Constructs the base geographic map using
+                          Folium and adds clustered markers for each
+                          ancient population.
+
+      6. Session State Logic – Maintains application state
+                               including selected population,
+                               map centering, and dataset changes.
+
+List of non-standard modules:
+      1. streamlit – Used to build the interactive web application
+                     and manage the user interface.
+
+      2. pandas – Used for reading datasets and performing dataframe 
+                  manipulation.
+
+      3. folium – Used for geographic visualization of ancient 
+                  population locations.
+
+      4. folium.plugins.MarkerCluster – Used to cluster nearby population 
+                                        markers for improved map performance.   
+
+      5. plotly.express – Used to create pie charts and sunburst diagrams for
+                          haplogroup visualization.
+
+      6. streamlit_folium – Used to integrate Folium maps directly into the 
+                            Streamlit interface.
+
+Procedure:
+      1. The program parses command-line arguments that specify input dataset 
+         paths for haplogroup frequency tables and subhaplogroup lists.
+      2. Input files are validated to ensure they exist before
+         loading begins.
+      3. Haplogroup frequency tables and corresponding subhaplogroup list files 
+         are loaded into pandas dataframes and cached to improve performance 
+         during interactive exploration.
+      4. Users select a dataset type from the sidebar:
+            1. Y haplogroup (terminal mutation format)
+            2. Y haplogroup (ISOGG format)
+            3. mtDNA haplogroup
+      5. Sidebar filters allow users to restrict the dataset based on:
+            1. Age range
+            2. Country
+            3. Sex
+      6. The filtered dataset is displayed in a table where users can
+         select a population.
+      7. The filtered populations are plotted geographically on an
+         interactive map with clustered markers.
+      8. Clicking a population marker on the map or selecting a row
+         from the table updates the application state.
+      9. The application displays:
+            1. A pie chart showing basal haplogroup composition.
+            2. A table listing subhaplogroups for each basal haplogroup.
+            3. A sunburst diagram illustrating haplogroup substructure.
+      10. The visualizations update dynamically based on user interactions 
+          without reloading the entire dataset.
+
+Input:
+      1. Y haplogroup terminal frequency table (.tsv)
+      2. Y haplogroup ISOGG frequency table (.tsv)
+      3. mtDNA haplogroup frequency table (.tsv)
+      4. Haplogroup list files corresponding to each frequency table.
+
+Output:
+      1. Interactive geographic map showing ancient population locations
+      2. Basal haplogroup composition pie charts
+      3. Tables listing subhaplogroups for selected populations
+      4. Sunburst diagrams illustrating haplogroup hierarchy
+
+Usage: streamlit run HaplogroupViewer.py -- \
+            --y_term y_term\
+            --y_iso y_iso\
+            --mt mt\
+            --y_term_sub y_term_sub\
+            --y_iso_sub y_iso_sub\
+            --mt_sub mt_sub
+
+Get Help: streamlit run HaplogroupViewer.py -- --help
+
+
+Version: 1.00
+Date: 2026-03-14
+Name: Karnesh Sampath
+
+"""
+
 # Streamlit for interactive web application
 # Folium for map visualization
 # Plotly for pie charts and sunburst diagrams
@@ -57,8 +189,8 @@ MT_SUB = args.mt_sub
 # Check if all provided file paths exist, if not, print an error and exit
 def check_files(paths):
     if not os.path.exists(paths):
-        print(f"Error: File not found - {paths}")  
-        sys.exit(1)
+        st.error(f"Error: File not found - {paths}")  
+        st.stop()
 
 check_files(Y_TERM_PATH)
 check_files(Y_ISO_PATH)
