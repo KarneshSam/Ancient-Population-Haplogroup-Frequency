@@ -233,6 +233,12 @@ datasets = load_data()
 
 # Streamlit page configuration
 st.set_page_config(layout="wide")
+st.markdown("""
+<style>
+.stApp { background-color: #F0F4F3; }
+[data-testid="stSidebar"] { background-color: #E4ECEA; }
+</style>
+""", unsafe_allow_html=True)
 st.title("🧬 Ancient Population Haplogroup Explorer")
 st.markdown("Explore ancient haplogroup distributions interactively")
 
