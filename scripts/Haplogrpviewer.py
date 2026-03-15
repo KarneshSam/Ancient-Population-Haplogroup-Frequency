@@ -469,7 +469,7 @@ with col2:
         else:
             st.warning("⚠️ Population not found in dataset.")
     else:
-        st.info("Select a population from the table or map to see its haplogroup composition.")
+        st.info("ℹ️ Select a population from the table or map to see its haplogroup composition.")
 
 #######################################
 # 12. SUBHAPLOGROUP TABLE AND SUNBURST DIAGRAM
@@ -542,4 +542,4 @@ if clicked_pop and hap is not None and not hap.empty:
                     plot_bgcolor="white")
                 st.plotly_chart(sunburst_fig)
     else:
-        st.info("No subhaplogroup data available for this population.")
+        st.warning("⚠️ No subhaplogroup data available for this population.")
