@@ -189,7 +189,7 @@ MT_SUB = args.mt_sub
 # Check if all provided file paths exist, if not, print an error and exit
 def check_files(paths):
     if not os.path.exists(paths):
-        st.error(f"Error: File not found - {paths}")  
+        st.error(f"⚠️ Error: File not found - {paths}")  
         st.stop()
 
 check_files(Y_TERM_PATH)
@@ -205,8 +205,8 @@ check_files(MT_SUB)
 
 # Streamlit page configuration
 st.set_page_config(layout="wide")
-st.title("Ancient Population Haplogroup Explorer")
-
+st.title("🧬 Ancient Population Haplogroup Explorer")
+st.markdown("Explore ancient haplogroup distributions interactively")
 #######################################
 # 4. LOAD DATA
 #######################################
@@ -229,7 +229,7 @@ def load_data():
       return datasets
     
     except Exception as e:
-        st.error(f"Error loading datasets: {e}")
+        st.error(f"⚠️ Error loading datasets: {e}")
         st.stop()
 
 # Load datasets
@@ -298,7 +298,8 @@ for key, default in [
 #######################################
 
 # Dataset selection sidebar
-st.sidebar.header("Dataset Selection")
+st.sidebar.header("📂 Dataset Selection")
+st.sidebar.markdown("Choose which haplogroup dataset to explore.")
 dataset_name = st.sidebar.selectbox("Select Dataset", list(datasets.keys()))
 
 # Reset state when dataset changes
@@ -318,12 +319,13 @@ df_sub = datasets[dataset_name]["sub"]
 #######################################
 
 # Filters sidebar
-st.sidebar.header("Filters")
+st.sidebar.header("⚙️ Filters")
+st.sidebar.markdown("Filter populations by age, country, or sex.")
 # create a age slider with min and max from the dataset, default to full range
-age_range = st.sidebar.slider("Age Range", int(df.Age.min()), int(df.Age.max()), (int(df.Age.min()), int(df.Age.max())))
+age_range = st.sidebar.slider("⏳ Age Range", int(df.Age.min()), int(df.Age.max()), (int(df.Age.min()), int(df.Age.max())))
 # create a multiselect for country and sex, default to all options
-country_filter = st.sidebar.multiselect("Country", df.Country.unique(), default=df.Country.unique())
-sex_filter = st.sidebar.multiselect("Sex", df.Sex.unique(), default=df.Sex.unique())
+country_filter = st.sidebar.multiselect("📌 Country", df.Country.unique(), default=df.Country.unique())
+sex_filter = st.sidebar.multiselect("⚥ Sex", df.Sex.unique(), default=df.Sex.unique())
 
 # Apply filters to the main dataframe and 
 # cache the result to avoid re-filtering on every interaction
@@ -340,8 +342,8 @@ if filtered.empty:
     st.stop()
 
 # Display filtered data
-st.subheader(f"Population Table ({dataset_name})")
-
+st.subheader(f"🌍 Population Table ({dataset_name})")
+st.markdown("Select a population to view its geographic location and haplogroup composition.")
 # user can select the population from the table
 selection = st.dataframe(
     filtered.reset_index(drop=True),
@@ -370,7 +372,8 @@ col1, col2 = st.columns([2,1])
 
 # Map visualization in the first column — cached base map with dynamic marker for selection
 with col1:
-    st.subheader("Geographic Distribution of Ancient Populations")
+    st.subheader("🗺️ Geographic Distribution of Ancient Populations")
+    st.markdown("View the geographic locations of ancient populations ")
     # Determine map center and zoom level based on selection or filtered data
     if st.session_state.fly_to:
         center_lat, center_long = st.session_state.fly_to
@@ -426,7 +429,8 @@ with col1:
 
 # Pie chart of basal haplogroup composition for the selected population in the second column
 with col2:
-    st.subheader("Basal Haplogroup Composition")
+    st.subheader("📊 Basal Haplogroup Composition")
+    st.markdown("🔵 Click a marker on the map to see the haplogroup composition.")
     clicked_pop = st.session_state.clicked_pop
     clicked_sex = st.session_state.clicked_sex
     hap = None
@@ -461,11 +465,11 @@ with col2:
                         paper_bgcolor="white", plot_bgcolor="white")
                 st.plotly_chart(fig)
              else:
-                st.warning("No haplogroup data for this population.")
+                st.warning("⚠️ No haplogroup data for this population.")
         else:
-            st.warning("Population not found in dataset.")
+            st.warning("⚠️ Population not found in dataset.")
     else:
-        st.info("🗺️ Click a marker on the map to see the pie chart.")
+        st.info("Select a population from the table or map to see its haplogroup composition.")
 
 #######################################
 # 12. SUBHAPLOGROUP TABLE AND SUNBURST DIAGRAM
@@ -475,8 +479,9 @@ with col2:
 # a sunburst diagram showing the relationship between basal haplogroups and their subhaplogroups
 if clicked_pop and hap is not None and not hap.empty:
     st.markdown("---")
-    st.markdown(f"### Population: {clicked_pop} ({clicked_sex})")
-    st.markdown("#### Subhaplogroup lists")
+    st.markdown(f"### 🧑‍🤝‍🧑 Population: {clicked_pop} ({clicked_sex})")
+    st.markdown("#### 📋 Subhaplogroup lists")
+    st.markdown("Tabular view of all subhaplogroups for the selected population.")
     
     # select row from subhap df
     sub_row = df_sub[(df_sub["Ancient pop"] == clicked_pop) & (df_sub["Sex"] == clicked_sex)]
@@ -509,11 +514,12 @@ if clicked_pop and hap is not None and not hap.empty:
 
         # display table - Subhaplogroup lists (right-aligned)
         if table_data:
-            st.table(pd.DataFrame(table_data))
+            st.table(pd.DataFrame(table_data).reset_index(drop=True))
     
         # sunburst plot (left-aligned)
         if sunburst_data["Basal"]:
-            st.markdown("#### Haplogroup Substructure")
+            st.markdown("#### 🌳 Haplogroup Substructure")
+            st.markdown("Explore subhaplogroups and their hierarchy using the sunburst diagram.")
             col_sb1, col_sb2 = st.columns([1,2])
             
             with col_sb1:
