@@ -3,6 +3,7 @@
 # Plotly for pie charts and sunburst diagrams
 # argparse for command-line argument parsing
 # pandas for data manipulation
+# os and sys for file path handling and system interactions
 import streamlit as st
 import pandas as pd
 import folium
@@ -10,6 +11,8 @@ from folium.plugins import MarkerCluster
 import plotly.express as px
 from streamlit_folium import st_folium
 import argparse
+import sys
+import os
 
 #######################################
 # 1. ARGUMENT PARSING
@@ -48,7 +51,24 @@ Y_ISO_SUB = args.y_iso_sub
 MT_SUB = args.mt_sub
 
 #######################################
-# 2. PAGE SETUP
+# 2. CHECK FILES EXISTENCE
+#######################################
+
+# Check if all provided file paths exist, if not, print an error and exit
+def check_files(paths):
+    if not os.path.exists(paths):
+        print(f"Error: File not found - {paths}")  
+        sys.exit(1)
+
+check_files(Y_TERM_PATH)
+check_files(Y_ISO_PATH)
+check_files(MT_PATH)
+check_files(Y_TERM_SUB)
+check_files(Y_ISO_SUB)
+check_files(MT_SUB)
+
+#######################################
+# 3. PAGE SETUP
 #######################################
 
 # Streamlit page configuration
@@ -56,13 +76,15 @@ st.set_page_config(layout="wide")
 st.title("Ancient Population Haplogroup Explorer")
 
 #######################################
-# 3. LOAD DATA
+# 4. LOAD DATA
 #######################################
 
 # Load all datasets at once and cache them to avoid reloading on every interaction
+# If there is an error loading any dataset, display an error message and stop the app
 @st.cache_data
 def load_data():
-    return {
+    try:
+      datasets = {
         "Y haplogroup (terminal mutation)": {
             "freq": pd.read_csv(Y_TERM_PATH, sep="\t"),
             "sub":  pd.read_csv(Y_TERM_SUB, sep="\t")},
@@ -72,11 +94,17 @@ def load_data():
         "mtDNA haplogroup": {
             "freq": pd.read_csv(MT_PATH, sep="\t"),
             "sub":  pd.read_csv(MT_SUB, sep="\t")}}
+      return datasets
+    
+    except Exception as e:
+        st.error(f"Error loading datasets: {e}")
+        st.stop()
+
 # Load datasets
 datasets = load_data()
 
 #######################################
-# 4. FILTERING FUNCTION
+# 5. FILTERING FUNCTION
 #######################################
 
 # Apply filters to the main frequency dataframe based on user input
@@ -89,7 +117,7 @@ def filter_data(df, age_min, age_max, countries, sexes):
         ].copy()
 
 #######################################
-# 5. BUILD BASE MAP FUNCTION
+# 6. BUILD BASE MAP FUNCTION
 #######################################
 
 # Cached map building — plain Marker objects, cached so only rebuilds on filter change
@@ -118,7 +146,7 @@ def build_base_map(df_subset, center_lat, center_long, zoom):
     return m
 
 #######################################
-# 6. SESSION STATE AND INTERACTION LOGIC
+# 7. SESSION STATE AND INTERACTION LOGIC
 #######################################
 
 # Initialize session state variables to track map centering and selected population
@@ -134,7 +162,7 @@ for key, default in [
         st.session_state[key] = default
 
 #######################################
-# 7. SIDEBAR SELECTION OF DATASET 
+# 8. SIDEBAR SELECTION OF DATASET 
 #######################################
 
 # Dataset selection sidebar
@@ -154,7 +182,7 @@ df = datasets[dataset_name]["freq"]
 df_sub = datasets[dataset_name]["sub"]
 
 #######################################
-# 8. SIDEBAR FILTERS 
+# 9. SIDEBAR FILTERS 
 #######################################
 
 # Filters sidebar
@@ -172,6 +200,12 @@ filtered = filter_data(
     age_range[0], age_range[1],
     tuple(sorted(country_filter)),
     tuple(sorted(sex_filter)))
+
+# If the filtered dataframe is empty, display a warning and 
+# stop the app to avoid errors in the map and pie chart rendering
+if filtered.empty:
+    st.warning("No populations match the selected filters. Please adjust the filters to see results.")
+    st.stop()
 
 # Display filtered data
 st.subheader(f"Population Table ({dataset_name})")
@@ -199,7 +233,7 @@ if selected_rows:
 col1, col2 = st.columns([2,1])
 
 #######################################
-# 9. MAP AND INTERACTION LOGIC
+# 10. MAP AND INTERACTION LOGIC
 #######################################
 
 # Map visualization in the first column — cached base map with dynamic marker for selection
@@ -255,7 +289,7 @@ with col1:
                 st.rerun()
 
 #######################################
-# 10. PIE CHART POPULATION COMPOSITION 
+# 11. PIE CHART POPULATION COMPOSITION 
 #######################################
 
 # Pie chart of basal haplogroup composition for the selected population in the second column
@@ -302,7 +336,7 @@ with col2:
         st.info("🗺️ Click a marker on the map to see the pie chart.")
 
 #######################################
-# 11. SUBHAPLOGROUP TABLE AND SUNBURST DIAGRAM
+# 12. SUBHAPLOGROUP TABLE AND SUNBURST DIAGRAM
 #######################################
 
 # If a population is selected, display a table of subhaplogroups and 
