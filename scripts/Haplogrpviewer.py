@@ -200,15 +200,7 @@ check_files(Y_ISO_SUB)
 check_files(MT_SUB)
 
 #######################################
-# 3. PAGE SETUP
-#######################################
-
-# Streamlit page configuration
-st.set_page_config(layout="wide")
-st.title("🧬 Ancient Population Haplogroup Explorer")
-st.markdown("Explore ancient haplogroup distributions interactively")
-#######################################
-# 4. LOAD DATA
+# 3. LOAD DATA
 #######################################
 
 # Load all datasets at once and cache them to avoid reloading on every interaction
@@ -234,6 +226,15 @@ def load_data():
 
 # Load datasets
 datasets = load_data()
+
+#######################################
+# 4. PAGE SETUP
+#######################################
+
+# Streamlit page configuration
+st.set_page_config(layout="wide")
+st.title("🧬 Ancient Population Haplogroup Explorer")
+st.markdown("Explore ancient haplogroup distributions interactively")
 
 #######################################
 # 5. FILTERING FUNCTION
