@@ -152,7 +152,7 @@ import os
 
 # Define command-line arguments for dataset paths
 def parse_arguments():
-    parser = argparse.ArgumentParser(description="Ancient Haplogroup Viewer")
+    parser = argparse.ArgumentParser(description="Ancient Haplogroup Explorer - Streamlit App")
     parser.add_argument("--y_term", required=True, 
                         help="Y haplogroup terminal mutation frequency")
     parser.add_argument("--y_iso", required=True,
@@ -228,7 +228,20 @@ def load_data():
 datasets = load_data()
 
 #######################################
-# 4. PAGE SETUP
+# 4. COLUMN VALIDATION
+#######################################
+
+# Validate that all required columns are present in the frequency datasets
+def validate_columns(df):
+    required = ["Ancient pop", "Country", "Age", "Lat", "Long", "Sex", "total"]
+    missing = [c for c in required if c not in df.columns]
+
+    if missing:
+        st.error(f"⚠️ Dataset missing required columns: {missing}")
+        st.stop()
+
+#######################################
+# 5. PAGE SETUP
 #######################################
 
 # Streamlit page configuration
@@ -243,7 +256,7 @@ st.title("🧬 Ancient Population Haplogroup Explorer")
 st.markdown("Explore ancient haplogroup distributions interactively")
 
 #######################################
-# 5. FILTERING FUNCTION
+# 6. FILTERING FUNCTION
 #######################################
 
 # Apply filters to the main frequency dataframe based on user input
@@ -256,7 +269,7 @@ def filter_data(df, age_min, age_max, countries, sexes):
         ].copy()
 
 #######################################
-# 6. BUILD BASE MAP FUNCTION
+# 7. BUILD BASE MAP FUNCTION
 #######################################
 
 # Cached map building — plain Marker objects, cached so only rebuilds on filter change
@@ -285,7 +298,7 @@ def build_base_map(df_subset, center_lat, center_long, zoom):
     return m
 
 #######################################
-# 7. SESSION STATE AND INTERACTION LOGIC
+# 8. SESSION STATE AND INTERACTION LOGIC
 #######################################
 
 # Initialize session state variables to track map centering and selected population
@@ -301,7 +314,7 @@ for key, default in [
         st.session_state[key] = default
 
 #######################################
-# 8. SIDEBAR SELECTION OF DATASET 
+# 9. SIDEBAR SELECTION OF DATASET 
 #######################################
 
 # Dataset selection sidebar
@@ -320,9 +333,11 @@ if st.session_state.prev_dataset != dataset_name:
 # Get the selected dataset's frequency and subhaplogroup data
 df = datasets[dataset_name]["freq"]
 df_sub = datasets[dataset_name]["sub"]
+# Validate that the frequency dataset 
+validate_columns(df)
 
 #######################################
-# 9. SIDEBAR FILTERS 
+# 10. SIDEBAR FILTERS 
 #######################################
 
 # Filters sidebar
@@ -374,7 +389,7 @@ if selected_rows:
 col1, col2 = st.columns([2,1])
 
 #######################################
-# 10. MAP AND INTERACTION LOGIC
+# 11. MAP AND INTERACTION LOGIC
 #######################################
 
 # Map visualization in the first column — cached base map with dynamic marker for selection
@@ -431,7 +446,7 @@ with col1:
                 st.rerun()
 
 #######################################
-# 11. PIE CHART POPULATION COMPOSITION 
+# 12. PIE CHART POPULATION COMPOSITION 
 #######################################
 
 # Pie chart of basal haplogroup composition for the selected population in the second column
@@ -479,7 +494,7 @@ with col2:
         st.info("ℹ️ Select a population from the table or map to see its haplogroup composition.")
 
 #######################################
-# 12. SUBHAPLOGROUP TABLE AND SUNBURST DIAGRAM
+# 13. SUBHAPLOGROUP TABLE AND SUNBURST DIAGRAM
 #######################################
 
 # If a population is selected, display a table of subhaplogroups and 
