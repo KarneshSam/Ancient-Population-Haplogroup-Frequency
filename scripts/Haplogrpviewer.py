@@ -524,7 +524,9 @@ if clicked_pop and hap is not None and not hap.empty:
             # split the subhaplogroup text by comma and strip whitespace, 
             # then add to the table data and sunburst data
             sub_list = [s.strip() for s in str(sub_text).split(",")]
-            table_data.append({"Basal Haplogroup": basal, "Subhaplogroups": ", ".join(sub_list)})
+            # deduplicated list — used only for table display
+            sub_list_unique = list(dict.fromkeys(sub_list))
+            table_data.append({"Basal Haplogroup": basal, "Subhaplogroups": ", ".join(sub_list_unique)})
 
             # sunburst values
             count = hap[basal]
