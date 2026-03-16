@@ -41,15 +41,18 @@ List of Functions:
       3. load_data – Loads haplogroup frequency tables and subhaplogroup
                      list files using pandas and caches them to improve
                      application performance.
+                     
+      4. validate_columns - Ensures that the loaded frequency datasets contain all required
+                            columns for proper functioning of the application.
 
-      4. filter_data – Applies user-selected filters such as age range,
+      5. filter_data – Applies user-selected filters such as age range,
                        country, and sex to the frequency dataset.
 
-      5. build_base_map – Constructs the base geographic map using
+      6. build_base_map – Constructs the base geographic map using
                           Folium and adds clustered markers for each
                           ancient population.
 
-      6. Session State Logic – Maintains application state
+      7. Session State Logic – Maintains application state
                                including selected population,
                                map centering, and dataset changes.
 
@@ -246,14 +249,29 @@ def validate_columns(df):
 
 # Streamlit page configuration
 st.set_page_config(layout="wide")
+# the background color of the app and sidebar
 st.markdown("""
 <style>
 .stApp { background-color: #F0F4F3; }
 [data-testid="stSidebar"] { background-color: #E4ECEA; }
 </style>
 """, unsafe_allow_html=True)
-st.title("🧬 Ancient Population Haplogroup Explorer")
-st.markdown("Explore ancient haplogroup distributions interactively")
+# custom header with a title and description, styled with CSS for better appearance
+st.markdown("""
+<div style="
+    background-color: #7AA682;
+    padding: 16px 20px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+">
+    <h1 style="color: #FFFFFF; margin: 0; font-size: 28px;">
+        🧬 Ancient Population Haplogroup Explorer
+    </h1>
+    <p style="color: #FFE8D6; margin: 6px 0 0 0; font-size: 14px;">
+        Explore ancient haplogroup distributions interactively
+    </p>
+</div>
+""", unsafe_allow_html=True)
 
 #######################################
 # 6. FILTERING FUNCTION
