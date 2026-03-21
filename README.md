@@ -245,7 +245,12 @@ All frequency tables include: Ancient population name, sex, mean age (BP), count
 ---
 
 ## Screenshots
- 
+
+### Population Table
+The filtered dataset is displayed as a selectable table showing ancient population name, sex, age, country, coordinates, and per-haplogroup counts.
+
+![Population table](docs/screenshot_poptable.png)
+
 ### Sidebar — Dataset Selection and Filters
 Select between Y haplogroup (terminal), Y haplogroup (ISOGG), or mtDNA datasets. Filter populations by age range, country, and sex.
  
