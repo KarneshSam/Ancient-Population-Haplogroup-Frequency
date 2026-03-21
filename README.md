@@ -268,7 +268,7 @@ A sunburst diagram visualizes the hierarchical relationship between basal haplog
 
 ## People Involved
 
-* **Name:** Karnesh Sampath (student), Chandrashekar CR (TA), Prof. Eran Elhaik
+* **Name:** Karnesh Sampath (student), Chandrashekar CR (TA)
 * **Date:** 2026-03-13 / 2026-03-14
 
 ---
