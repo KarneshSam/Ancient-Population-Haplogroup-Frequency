@@ -287,3 +287,4 @@ A sunburst diagram visualizes the hierarchical relationship between basal haplog
 * The pipeline handles missing values encoded as `".."` and coordinate inconsistencies (comma-decimal formats) commonly found in large AADR annotation files.
 * Only ancient samples (Age ≠ 0) are retained; modern samples are excluded during coordinate cleaning.
 * The web application takes more computational time for large dataset.
+* The sample AADR dataset was provided not the original file and results were generated from this data.
