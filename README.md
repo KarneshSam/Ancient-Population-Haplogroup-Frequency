@@ -130,16 +130,16 @@ Three separate runs are performed for:
 
 This workflow depends on the following Python packages:
 
-| Tool | Purpose |
-|------|---------|
-| `pandas` | Data loading, filtering, and manipulation |
-| `numpy` | Handling missing values and numeric operations |
-| `argparse` | Command-line argument parsing |
-| `streamlit` | Interactive web application framework |
-| `folium` | Geographic map visualization |
-| `folium.plugins.MarkerCluster` | Marker clustering for map performance |
-| `plotly.express` | Pie charts and sunburst diagrams |
-| `streamlit_folium` | Embedding Folium maps in Streamlit |
+| Tool | Version | Purpose |
+|------|---------|---------|
+| `pandas` | 2.3.3 | Data loading, filtering, and manipulation |
+| `numpy` | 1.26.4 | Handling missing values and numeric operations |
+| `argparse` | stdlib | Command-line argument parsing |
+| `streamlit` | 1.55.0 | Interactive web application framework |
+| `folium` | 0.20.0 | Geographic map visualization |
+| `folium.plugins.MarkerCluster` | 0.20.0 | Marker clustering for map performance |
+| `plotly.express` | 5.24.1 | Pie charts and sunburst diagrams |
+| `streamlit_folium` | 0.20.0 | Embedding Folium maps in Streamlit |
 
 Install all dependencies:
 
